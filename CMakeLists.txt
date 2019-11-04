@@ -1,0 +1,48 @@
+project(main)
+
+cmake_minimum_required(VERSION 3.15)
+set (PROJECT_VERSION 1.0)
+message(STATUS "PROJECT_VERSION = " ${PROJECT_VERSION})
+
+message(STATUS "CMAKE_C_FLAGS = " ${CMAKE_C_FLAGS})
+message(STATUS "CMAKE_C_FLAGS_DEBUG = " ${CMAKE_C_FLAGS_DEBUG})
+message(STATUS "CMAKE_C_FLAGS_RELEASE = " ${CMAKE_C_FLAGS_RELEASE})
+
+message(STATUS "CMAKE_CXX_FLAGS = " ${CMAKE_CXX_FLAGS})
+message(STATUS "CMAKE_CXX_FLAGS_DEBUG = " ${CMAKE_CXX_FLAGS_DEBUG})
+message(STATUS "CMAKE_CXX_FLAGS_RELEASE = " ${CMAKE_CXX_FLAGS_RELEASE})
+
+message(STATUS "CMAKE_EXE_LINKER_FLAGS = " ${CMAKE_EXE_LINKER_FLAGS})
+message(STATUS "CMAKE_EXE_LINKER_FLAGS_DEBUG = " ${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+message(STATUS "CMAKE_EXE_LINKER_FLAGS_RELEASE = " ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
+
+message(STATUS "CMAKE_SHARED_LINKER_FLAGS = " ${CMAKE_SHARED_LINKER_FLAGS})
+message(STATUS "CMAKE_SHARED_LINKER_FLAGS_DEBUG = " ${CMAKE_SHARED_LINKER_FLAGS_DEBUG})
+message(STATUS "CMAKE_SHARED_LINKER_FLAGS_RELEASE = " ${CMAKE_SHARED_LINKER_FLAGS_RELEASE})
+
+message(STATUS "CMAKE_STATIC_LINKER_FLAGS = " ${CMAKE_STATIC_LINKER_FLAGS})
+message(STATUS "CMAKE_STATIC_LINKER_FLAGS_DEBUG = " ${CMAKE_STATIC_LINKER_FLAGS_DEBUG})
+message(STATUS "CMAKE_STATIC_LINKER_FLAGS_RELEASE = " ${CMAKE_STATIC_LINKER_FLAGS_RELEASE})
+
+option(BUILDSTATIC "build use static library" OFF)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+if (EXISTS ${PROJECT_SOURCE_DIR}/src/lib AND
+    IS_DIRECTORY ${PROJECT_SOURCE_DIR}/src/lib)
+  add_subdirectory(src/lib)
+else()
+  message("src not exists")
+endif()
+
+if (EXISTS ${PROJECT_SOURCE_DIR}/src AND
+    IS_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+  add_subdirectory(src)
+else()
+  message("src not exists")
+endif()
+
+# find_program(curl "/usr/bin/curl")
+# if (curl)
+#   exec_program("/usr/bin/curl" ARGS "\"http://www.baidu.com\" -s -o /dev/null" var)
+# else()
+# endif()
