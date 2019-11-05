@@ -50,14 +50,19 @@
 
 typedef struct sockaddr SA;
 /* Wrapper */
-int Socket(int, int, int);
-int Bind(int, const struct sockaddr *, socklen_t);
-int Listen(int, int);
-int Accept(int, struct sockaddr *, socklen_t*);
-int Close(int);
-ssize_t Write(int fd, const void *, size_t);
-ssize_t Read(int fd, void *, size_t);
-void Pthread_mutex_lock(pthread_mutex_t*);
+int Socket(int family, int type, int protocol);
+int Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int Listen(int sockfd, int backlog);
+int Accept(int sockfd, struct sockaddr *addr, socklen_t*addrlen);
+int Close(int fd);
+ssize_t Write(int fd, const void *buf, size_t count);
+ssize_t Read(int fd, void *buf, size_t count);
+char *Fgets(char *s, int size, FILE *fp);
+int Fputs(const char *s, FILE *fp);
+int Inet_pton(int family, const char *ptr, void *buf);
+void Pthread_mutex_lock(pthread_mutex_t*mptr);
+pid_t Fork(void);
 
 /* Error Handler */
 void err_ret(const char *fmt, ...);
@@ -65,4 +70,11 @@ void err_sys(const char *fmt, ...);
 void err_dump(const char *fmt, ...);
 void err_msg(const char *fmt, ...);
 void err_quit(const char *fmt, ...);
+
+ssize_t readn(int fd, void *vptr, size_t n);
+ssize_t writen(int fd, const void *vptr, size_t n);
+ssize_t readline(int fd, void*vptr, size_t maxlen);
+
+void str_echo(int sockfd);
+void str_cli(FILE *fp, int sockfd);
 #endif

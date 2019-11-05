@@ -16,6 +16,16 @@ Socket(int family, int type, int protocol)
 }
 
 int
+Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+    int n;
+    if ((n = connect(sockfd, addr, addrlen)) < 0) {
+        err_sys("connect error");
+    }
+    return n;
+}
+
+int
 Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     int n;
@@ -46,6 +56,16 @@ Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 }
 
 int
+Inet_pton(int family, const char *ptr, void *buf)
+{
+    int n;
+    if ((n = inet_pton(family, ptr, buf)) != 1) {
+        err_sys("inet_pton error");
+    }
+    return n;
+}
+
+int
 Close(int fd)
 {
     int n;
@@ -71,6 +91,35 @@ Read(int fd, void *buf, size_t count)
     ssize_t n;
     if ((n = read(fd, buf, count)) < 0) {
         err_sys("read error");
+    }
+    return n;
+}
+
+char *
+Fgets(char *s, int size, FILE *fp)
+{
+    char *n;
+    if ((n = fgets(s, size, fp)) == NULL) {
+    }
+    return n;
+}
+
+int
+Fputs(const char *s, FILE *fp)
+{
+    int n;
+    if ((n = fputs(s, fp)) == EOF) {
+        err_sys("fputs error");
+    }
+    return n;
+}
+
+pid_t
+Fork(void)
+{
+    pid_t n;
+    if ((n = fork()) < 0) {
+        err_sys("fork error");
     }
     return n;
 }
