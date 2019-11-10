@@ -1,9 +1,8 @@
 /*
- * tcpcli01.c - tcpcli01
+ * tcpcli09.c - tcpcli09
  *
- * Date   : 2019/11/05
+ * Date   : 2019/11/10
  */
-
 #include "unp.h"
 
 int main(int argc, char *argv[])
@@ -23,6 +22,6 @@ int main(int argc, char *argv[])
 
     Connect(sockfd, (SA *)&servaddr, sizeof(servaddr));
 
-    str_cli(stdin, sockfd);
+    bin_cli(stdin, sockfd);
     return 0;
 }

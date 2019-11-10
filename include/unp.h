@@ -48,6 +48,9 @@
 #define min(a, b)   ((a) < (b) ? (a) : (b))
 #define max(a, b)   ((a) > (b) ? (a) : (b))
 
+#ifndef sighandler_t
+typedef void (*sighandler_t)(int);
+#endif // sighandler_t
 typedef struct sockaddr SA;
 /* Wrapper */
 int Socket(int family, int type, int protocol);
@@ -63,6 +66,10 @@ int Fputs(const char *s, FILE *fp);
 int Inet_pton(int family, const char *ptr, void *buf);
 void Pthread_mutex_lock(pthread_mutex_t*mptr);
 pid_t Fork(void);
+sighandler_t Signal(int signum, sighandler_t handler);
+int Select(int nfds, fd_set *readfds, fd_set *writefds,
+           fd_set *exceptfds, struct timeval *timeout);
+int Shutdown(int fd, int howto);
 
 /* Error Handler */
 void err_ret(const char *fmt, ...);
@@ -72,9 +79,18 @@ void err_msg(const char *fmt, ...);
 void err_quit(const char *fmt, ...);
 
 ssize_t readn(int fd, void *vptr, size_t n);
+ssize_t Readn(int fd, void *vptr, size_t n);
 ssize_t writen(int fd, const void *vptr, size_t n);
+ssize_t Writen(int fd, const void *vptr, size_t n);
 ssize_t readline(int fd, void*vptr, size_t maxlen);
+ssize_t Readline(int fd, void*vptr, size_t maxlen);
 
 void str_echo(int sockfd);
+void str_echo08(int sockfd);
 void str_cli(FILE *fp, int sockfd);
+#define str_cli08 str_cli
+void bin_echo(int sockfd);
+void bin_cli(FILE *fp, int sockfd);
+void str_cli_select(FILE *fp, int sockfd);
+void str_cli_select02(FILE *fp, int sockfd);
 #endif

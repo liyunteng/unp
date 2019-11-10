@@ -124,6 +124,37 @@ Fork(void)
     return n;
 }
 
+sighandler_t
+Signal(int signum, sighandler_t handler)
+{
+    sighandler_t r = NULL;
+    if ((r = signal(signum, handler)) == SIG_ERR) {
+        err_sys("singal error");
+    }
+    return r;
+}
+
+int
+Select(int nfds, fd_set *readfds, fd_set *writefds,
+       fd_set *exceptfds, struct timeval *timeout)
+{
+    int n;
+    if ((n = select(nfds, readfds, writefds, exceptfds, timeout)) < 0) {
+        err_sys("select error");
+    }
+    return n;
+}
+
+int
+Shutdown(int fd, int howto)
+{
+    int n;
+    if ((n = shutdown(fd, howto)) < 0) {
+        err_sys("shutdown error");
+    }
+    return n;
+}
+
 void
 Pthread_mutex_lock(pthread_mutex_t *mptr)
 {

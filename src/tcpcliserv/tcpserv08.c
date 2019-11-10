@@ -1,8 +1,9 @@
 /*
- * tcpserv01.c - tcpserv01
+ * tcpserv08.c - tcpserv08
  *
- * Date   : 2019/11/05
+ * Date   : 2019/11/10
  */
+
 #include "unp.h"
 
 void
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
         if ((childpid = Fork()) == 0) {
             /* child process */
             Close(listenfd);
-            str_echo(connfd);
+            str_echo08(connfd);
             exit(0);
         }
         /* parent process */

@@ -1,9 +1,8 @@
 /*
- * tcpcli01.c - tcpcli01
+ * tcpcliselect01.c - tcpcliselect01
  *
- * Date   : 2019/11/05
+ * Date   : 2019/11/10
  */
-
 #include "unp.h"
 
 int main(int argc, char *argv[])
@@ -14,15 +13,14 @@ int main(int argc, char *argv[])
     if (argc != 2) {
         err_quit("Usage: %s <IPaddress>", argv[0]);
     }
-
     sockfd = Socket(AF_INET, SOCK_STREAM, 0);
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(SERV_PORT);
-    Inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
+    servaddr.sin_port =htons(SERV_PORT);
+    Inet_pton(AF_INET,argv[1],&servaddr.sin_addr);
 
-    Connect(sockfd, (SA *)&servaddr, sizeof(servaddr));
+    Connect(sockfd, (SA*)&servaddr, sizeof(servaddr));
 
-    str_cli(stdin, sockfd);
+    str_cli_select02(stdin, sockfd);
     return 0;
 }
