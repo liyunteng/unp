@@ -27,13 +27,9 @@ message(STATUS "CMAKE_STATIC_LINKER_FLAGS_RELEASE = " ${CMAKE_STATIC_LINKER_FLAG
 option(BUILDSTATIC "build use static library" OFF)
 # set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+link_directories(${PROJECT_BINARY_DIR}/lib)
 
-if (EXISTS ${PROJECT_SOURCE_DIR}/src/lib AND
-    IS_DIRECTORY ${PROJECT_SOURCE_DIR}/src/lib)
-  add_subdirectory(src/lib)
-else()
-  message("src not exists")
-endif()
 
 if (EXISTS ${PROJECT_SOURCE_DIR}/src AND
     IS_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
