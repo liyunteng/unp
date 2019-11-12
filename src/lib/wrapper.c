@@ -79,7 +79,7 @@ ssize_t
 Write(int fd, const void *buf, size_t count)
 {
     ssize_t n;
-    if ((n = write(fd, buf, count)) < 0) {
+    if ((n = write(fd, buf, count)) != count) {
         err_sys("write error");
     }
     return n;

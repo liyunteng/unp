@@ -29,8 +29,8 @@ add_executable(tcpservselect01 tcpservselect01.c)
 target_link_libraries(tcpservselect01 unp)
 
 add_executable(tcpcliselect01 tcpcliselect01.c)
-target_link_libraries(tcpcliselect01 unp
-)
+target_link_libraries(tcpcliselect01 unp)
+
 # foreach(onefile ${SRC_LIST})
 #   message(${onefile})
 # endforeach()
