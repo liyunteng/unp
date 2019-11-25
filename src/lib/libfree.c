@@ -45,37 +45,34 @@ my_inet_ntop(int family, const void *addrptr, char *strptr, size_t len)
 char *
 sock_ntop(const struct sockaddr *sa, socklen_t salen)
 {
-    char portstr[8];
+    char        portstr[8];
     static char str[128];
 
-    switch(sa->sa_family) {
+    switch (sa->sa_family) {
     case AF_INET: {
-        struct sockaddr_in *sin = (struct sockaddr_in*)sa;
+        struct sockaddr_in *sin = (struct sockaddr_in *)sa;
         if (inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str)) == NULL) {
             return (NULL);
         }
         if (ntohs(sin->sin_port) != 0) {
-            snprintf(portstr, sizeof(portstr), ":%d",
-                     ntohs(sin->sin_port));
+            snprintf(portstr, sizeof(portstr), ":%d", ntohs(sin->sin_port));
             strcat(str, portstr);
         }
-        return(str);
+        return (str);
     }
         /* TODO: */
-
     }
-    return(NULL);
+    return (NULL);
 }
-
 
 ssize_t
 readn(int fd, void *vptr, size_t n)
 {
-    size_t nleft;
+    size_t  nleft;
     ssize_t nread;
-    char *ptr;
+    char *  ptr;
 
-    ptr = vptr;
+    ptr   = vptr;
     nleft = n;
     while (nleft > 0) {
         if ((nread = read(fd, ptr, nleft)) < 0) {
@@ -105,13 +102,13 @@ Readn(int fd, void *vptr, size_t len)
 ssize_t
 writen(int fd, const void *vptr, size_t n)
 {
-    size_t nleft;
-    ssize_t nwritten;
+    size_t      nleft;
+    ssize_t     nwritten;
     const char *ptr;
 
-    ptr = vptr;
+    ptr   = vptr;
     nleft = n;
-    while (nleft >0) {
+    while (nleft > 0) {
         if ((nwritten = write(fd, ptr, nleft)) <= 0) {
             if (nwritten < 0 && errno == EINTR)
                 nwritten = 0;
@@ -133,10 +130,9 @@ Writen(int fd, const void *vptr, size_t len)
     return n;
 }
 
-
-static int read_cnt;
+static int   read_cnt;
 static char *read_ptr;
-static char read_buf[MAXLINE];
+static char  read_buf[MAXLINE];
 static ssize_t
 my_read(int fd, char *ptr)
 {
@@ -152,14 +148,14 @@ my_read(int fd, char *ptr)
     }
     read_cnt--;
     *ptr = *read_ptr++;
-    return(1);
+    return (1);
 }
 
 ssize_t
 readline(int fd, void *vptr, size_t maxlen)
 {
     ssize_t n, rc;
-    char c, *ptr;
+    char    c, *ptr;
 
     ptr = vptr;
     for (n = 1; n < maxlen; n++) {
@@ -196,26 +192,24 @@ readlinebuf(void **vptrptr)
     return (read_cnt);
 }
 
-
 int
 sockfd_to_family(int sockfd)
 {
     struct sockaddr_storage ss;
-    socklen_t len;
+    socklen_t               len;
 
     len = sizeof(ss);
-    if (getsockname(sockfd,(SA *)&ss,&len) < 0) {
+    if (getsockname(sockfd, (SA *)&ss, &len) < 0) {
         return (-1);
     }
     return (ss.ss_family);
 }
 
-
 void
 str_echo(int sockfd)
 {
     ssize_t n;
-    char buf[MAXLINE];
+    char    buf[MAXLINE];
 
 again:
     while ((n = read(sockfd, buf, MAXLINE)) > 0) {
@@ -231,16 +225,16 @@ again:
 void
 str_echo08(int sockfd)
 {
-    long arg1, arg2;
+    long    arg1, arg2;
     ssize_t n;
-    char line[MAXLINE];
+    char    line[MAXLINE];
 
-    for(;;) {
+    for (;;) {
         if ((n = Readline(sockfd, line, MAXLINE)) == 0) {
             return;
         }
         if (sscanf(line, "%ld %ld", &arg1, &arg2) == 2) {
-            snprintf(line, sizeof(line), "%ld\n", arg1+arg2);
+            snprintf(line, sizeof(line), "%ld\n", arg1 + arg2);
         } else {
             snprintf(line, sizeof(line), "input error\n");
         }
@@ -264,19 +258,18 @@ str_cli(FILE *fp, int sockfd)
     }
 }
 
-struct args
-{
+struct args {
     long arg1;
     long arg2;
 };
-struct result
-{
+struct result {
     long sum;
 };
-void bin_echo(int sockfd)
+void
+bin_echo(int sockfd)
 {
-    ssize_t n;
-    struct args args;
+    ssize_t       n;
+    struct args   args;
     struct result result;
 
     for (;;) {
@@ -287,13 +280,14 @@ void bin_echo(int sockfd)
         Writen(sockfd, &result, sizeof(result));
     }
 }
-void bin_cli(FILE *fp, int sockfd)
+void
+bin_cli(FILE *fp, int sockfd)
 {
-    char sendline[MAXLINE];
-    struct args args;
+    char          sendline[MAXLINE];
+    struct args   args;
     struct result result;
 
-    while(Fgets(sendline, MAXLINE, fp) != NULL) {
+    while (Fgets(sendline, MAXLINE, fp) != NULL) {
         if (sscanf(sendline, "%ld %ld", &args.arg1, &args.arg2) != 2) {
             printf("invalid input: %s", sendline);
             continue;
@@ -308,11 +302,12 @@ void bin_cli(FILE *fp, int sockfd)
     }
 }
 
-void str_cli_select(FILE *fp, int sockfd)
+void
+str_cli_select(FILE *fp, int sockfd)
 {
-    int maxfd;
+    int    maxfd;
     fd_set rset;
-    char sendline[MAXLINE], recvline[MAXLINE];
+    char   sendline[MAXLINE], recvline[MAXLINE];
 
     FD_ZERO(&rset);
     for (;;) {
@@ -334,15 +329,15 @@ void str_cli_select(FILE *fp, int sockfd)
             Writen(sockfd, sendline, strlen(sendline));
         }
     }
-
 }
 
-void str_cli_select02(FILE *fp, int sockfd)
+void
+str_cli_select02(FILE *fp, int sockfd)
 {
-    int maxfd, stdineof;
+    int    maxfd, stdineof;
     fd_set rset;
-    char buf[MAXLINE];
-    int n;
+    char   buf[MAXLINE];
+    int    n;
 
     stdineof = 0;
     FD_ZERO(&rset);
@@ -355,9 +350,9 @@ void str_cli_select02(FILE *fp, int sockfd)
         Select(maxfd, &rset, NULL, NULL, NULL);
 
         if (FD_ISSET(sockfd, &rset)) {
-            if (( n = Read(sockfd, buf, MAXLINE)) == 0) {
+            if ((n = Read(sockfd, buf, MAXLINE)) == 0) {
                 if (stdineof == 1) {
-                    return;     /* normal termination */
+                    return; /* normal termination */
                 } else {
                     err_quit("server terminated prematurely");
                 }
@@ -387,11 +382,11 @@ my_signal(int signo, Sigfunc *func)
     if (signo == SIGALRM) {
 #ifdef SA_INTERRUPT
         act.sa_flags |= SA_INTERRUPT;
-#endif // SA_INTERRUPT
+#endif  // SA_INTERRUPT
     } else {
 #ifdef SA_RESTART
         act.sa_flags |= SA_RESTART;
-#endif // SA_RESTART
+#endif  // SA_RESTART
     }
 
     if (sigaction(signo, &act, &oact) < 0)

@@ -34,6 +34,9 @@ target_link_libraries(tcpcliselect01 unp)
 add_executable(tcpservselect tcpservselect.c)
 target_link_libraries(tcpservselect unp)
 
+add_executable(tcpservpoll01 tcpservpoll01.c)
+target_link_libraries(tcpservpoll01 unp)
+
 # foreach(onefile ${SRC_LIST})
 #   message(${onefile})
 # endforeach()

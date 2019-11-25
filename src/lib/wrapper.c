@@ -135,12 +135,21 @@ Signal(int signum, sighandler_t handler)
 }
 
 int
-Select(int nfds, fd_set *readfds, fd_set *writefds,
-       fd_set *exceptfds, struct timeval *timeout)
+Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
 {
     int n;
     if ((n = select(nfds, readfds, writefds, exceptfds, timeout)) < 0) {
         err_sys("select error");
+    }
+    return n;
+}
+
+int
+Poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    int n;
+    if ((n = poll(fds, nfds, timeout)) < 0) {
+        err_sys("poll error");
     }
     return n;
 }

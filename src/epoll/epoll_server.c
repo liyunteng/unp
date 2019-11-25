@@ -3,20 +3,20 @@
  *
  * Date   : 2019/11/10
  */
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <pthread.h>
-#include <inttypes.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <sys/epoll.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/epoll.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define BUFFSIZE 4096
 #define MAXEVENTS 10
@@ -24,16 +24,17 @@
 static uint32_t g_id = 0;
 typedef struct {
     uint32_t id;
-    int connfd;
-    char addr[32];
-    char recv_buf[BUFFSIZE];
-    char send_buf[BUFFSIZE];
+    int      connfd;
+    char     addr[32];
+    char     recv_buf[BUFFSIZE];
+    char     send_buf[BUFFSIZE];
     uint32_t send_length;
     uint32_t recv_length;
     uint32_t sent_length;
 } context_t;
 
-int setnonblocking(int fd)
+int
+setnonblocking(int fd)
 {
     int val;
     if ((val = fcntl(fd, F_GETFL, 0)) < 0) {
@@ -49,13 +50,15 @@ int setnonblocking(int fd)
     return 0;
 }
 
-int get_response(context_t * ctx)
+int
+get_response(context_t *ctx)
 {
     if (ctx == NULL) {
         return -1;
     }
-    ctx->send_length = snprintf(ctx->send_buf, sizeof(ctx->send_buf),
-                                "HTTP/1.1 200 OK\r\nContent-Length: 26\r\n\r\nabcdefghijklmnopqrstuvwxyz");
+    ctx->send_length =
+        snprintf(ctx->send_buf, sizeof(ctx->send_buf),
+                 "HTTP/1.1 200 OK\r\nContent-Length: 26\r\n\r\nabcdefghijklmnopqrstuvwxyz");
     /* memset(ctx->send_buf, 'c', sizeof(ctx->send_buf)); */
     /* ctx->send_length = sizeof(ctx->send_buf); */
     ctx->sent_length = 0;
@@ -63,12 +66,13 @@ int get_response(context_t * ctx)
     return 0;
 }
 
-int do_accept(int epollfd, struct epoll_event ev)
+int
+do_accept(int epollfd, struct epoll_event ev)
 {
-    int connfd;
-    int listenfd = ev.data.fd;
+    int                connfd;
+    int                listenfd = ev.data.fd;
     struct sockaddr_in cliaddr;
-    socklen_t clilen = sizeof(cliaddr);
+    socklen_t          clilen = sizeof(cliaddr);
     if (ev.events & EPOLLIN) {
         while (1) {
             connfd = accept(listenfd, (struct sockaddr *)&cliaddr, &clilen);
@@ -79,17 +83,18 @@ int do_accept(int epollfd, struct epoll_event ev)
                     goto quit;
                 }
                 memset(ctx, 0, sizeof(context_t));
-                ctx->id = g_id++;
+                ctx->id     = g_id++;
                 ctx->connfd = connfd;
                 char ip[INET_ADDRSTRLEN];
-                snprintf(ctx->addr, sizeof(ctx->addr)-1, "[%d] %s:%d", ctx->id, inet_ntop(AF_INET, &cliaddr.sin_addr, ip, clilen),
+                snprintf(ctx->addr, sizeof(ctx->addr) - 1, "[%d] %s:%d", ctx->id,
+                         inet_ntop(AF_INET, &cliaddr.sin_addr, ip, clilen),
                          ntohs(cliaddr.sin_port));
                 get_response(ctx);
 
                 printf("%s connected\n", ctx->addr);
                 setnonblocking(connfd);
                 ev.data.ptr = ctx;
-                ev.events = EPOLLIN | EPOLLET;
+                ev.events   = EPOLLIN | EPOLLET;
                 if (epoll_ctl(epollfd, EPOLL_CTL_ADD, connfd, &ev) == -1) {
                     perror("epoll_ctl ADD");
                     goto quit;
@@ -114,10 +119,11 @@ quit:
     return -1;
 }
 
-int do_server(int epollfd, struct epoll_event ev)
+int
+do_server(int epollfd, struct epoll_event ev)
 {
-    int connfd = -1;
-    int n;
+    int        connfd = -1;
+    int        n;
     context_t *ctx = ev.data.ptr;
     if (ctx == NULL) {
         goto quit;
@@ -127,8 +133,9 @@ int do_server(int epollfd, struct epoll_event ev)
 
     if (ev.events & EPOLLIN) {
         /* for EPOLLET */
-        while (ctx->recv_length < sizeof(ctx->recv_buf)-1) {
-            n = recv(connfd, ctx->recv_buf + ctx->recv_length, sizeof(ctx->recv_buf)-ctx->recv_length-1, 0);
+        while (ctx->recv_length < sizeof(ctx->recv_buf) - 1) {
+            n = recv(connfd, ctx->recv_buf + ctx->recv_length,
+                     sizeof(ctx->recv_buf) - ctx->recv_length - 1, 0);
             if (n > 0) {
                 ctx->recv_length += n;
             } else if (n == 0) {
@@ -144,7 +151,7 @@ int do_server(int epollfd, struct epoll_event ev)
                     printf("%s", ctx->recv_buf);
                     fflush(stdout);
                     ev.data.ptr = ctx;
-                    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+                    ev.events   = EPOLLIN | EPOLLOUT | EPOLLET;
                     if (epoll_ctl(epollfd, EPOLL_CTL_MOD, connfd, &ev) == -1) {
                         perror("epoll_ctl MOD");
                         goto quit;
@@ -160,8 +167,8 @@ int do_server(int epollfd, struct epoll_event ev)
                 }
             }
             /* recv_buf full, override */
-            if (ctx->recv_length >= sizeof(ctx->recv_buf)-1) {
-                ctx->recv_buf[sizeof(ctx->recv_buf)-1] = 0;
+            if (ctx->recv_length >= sizeof(ctx->recv_buf) - 1) {
+                ctx->recv_buf[sizeof(ctx->recv_buf) - 1] = 0;
                 printf("%s", ctx->recv_buf);
                 /* printf("## buffer is full ##\n"); */
                 ctx->recv_length = 0;
@@ -170,10 +177,11 @@ int do_server(int epollfd, struct epoll_event ev)
         }
     } else if (ev.events & EPOLLOUT) {
         while (ctx->sent_length < ctx->send_length) {
-            n = send(connfd, ctx->send_buf + ctx->sent_length, ctx->send_length - ctx->sent_length, 0);
+            n = send(connfd, ctx->send_buf + ctx->sent_length, ctx->send_length - ctx->sent_length,
+                     0);
             if (n > 0) {
                 ctx->sent_length += n;
-                printf("send to %s %d/%d [%d]\n",  ctx->addr, ctx->sent_length, ctx->send_length, n);
+                printf("send to %s %d/%d [%d]\n", ctx->addr, ctx->sent_length, ctx->send_length, n);
             } else if (n == 0) {
 
             } else if (n == -1) {
@@ -208,14 +216,14 @@ int do_server(int epollfd, struct epoll_event ev)
 
 disconnect:
     free(ctx);
-    ctx = NULL;
+    ctx         = NULL;
     ev.data.ptr = NULL;
     epoll_ctl(epollfd, EPOLL_CTL_DEL, connfd, &ev);
     return 0;
 
 quit:
     free(ctx);
-    ctx = NULL;
+    ctx         = NULL;
     ev.data.ptr = NULL;
     if (epoll_ctl(epollfd, EPOLL_CTL_DEL, connfd, &ev) == -1) {
         perror("epoll_ctl DEL");
@@ -223,10 +231,11 @@ quit:
     return -1;
 }
 
-int epoll_server(int port)
+int
+epoll_server(int port)
 {
-    int epollfd, nfds;
-    int listenfd;
+    int                epollfd, nfds;
+    int                listenfd;
     struct sockaddr_in servaddr;
     struct epoll_event ev, events[MAXEVENTS];
 
@@ -236,8 +245,8 @@ int epoll_server(int port)
     }
 
     memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(port);
+    servaddr.sin_family      = AF_INET;
+    servaddr.sin_port        = htons(port);
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     setnonblocking(listenfd);
     int val = 1;
@@ -265,7 +274,7 @@ int epoll_server(int port)
         perror("epoll_create1");
         return -1;
     }
-    ev.events = EPOLLIN | EPOLLET;
+    ev.events  = EPOLLIN | EPOLLET;
     ev.data.fd = listenfd;
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listenfd, &ev) == -1) {
         perror("epoll_ctl");
@@ -296,7 +305,8 @@ int epoll_server(int port)
     }
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     if (argc != 2) {
         printf("Usage: %s <Port>\n", argv[0]);

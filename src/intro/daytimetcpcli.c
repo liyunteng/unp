@@ -6,10 +6,11 @@
 
 #include "unp.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
-    int sockfd, n;
-    char recvline[MAXLINE + 1];
+    int                sockfd, n;
+    char               recvline[MAXLINE + 1];
     struct sockaddr_in serveraddr;
 
     if (argc != 2) {
@@ -22,12 +23,12 @@ int main(int argc, char *argv[])
 
     bzero(&serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
-    serveraddr.sin_port = htons(13);
+    serveraddr.sin_port   = htons(13);
     if (inet_pton(AF_INET, argv[1], &serveraddr.sin_addr) <= 0) {
         err_quit("inet_pton error for %s", argv[1]);
     }
 
-    if (connect(sockfd,(struct sockaddr *)&serveraddr,sizeof(serveraddr)) < 0) {
+    if (connect(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
         err_sys("connect error");
     }
 

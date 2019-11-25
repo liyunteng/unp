@@ -69,6 +69,7 @@ pid_t Fork(void);
 sighandler_t Signal(int signum, sighandler_t handler);
 int Select(int nfds, fd_set *readfds, fd_set *writefds,
            fd_set *exceptfds, struct timeval *timeout);
+int Poll(struct pollfd *fds, nfds_t nfds, int timeout);
 int Shutdown(int fd, int howto);
 
 /* Error Handler */
