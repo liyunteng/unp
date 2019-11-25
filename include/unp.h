@@ -52,6 +52,7 @@
 typedef void (*sighandler_t)(int);
 #endif // sighandler_t
 typedef struct sockaddr SA;
+
 /* Wrapper */
 int Socket(int family, int type, int protocol);
 int Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
@@ -64,6 +65,7 @@ ssize_t Read(int fd, void *buf, size_t count);
 char *Fgets(char *s, int size, FILE *fp);
 int Fputs(const char *s, FILE *fp);
 int Inet_pton(int family, const char *ptr, void *buf);
+void *Malloc(size_t len);
 void Pthread_mutex_lock(pthread_mutex_t*mptr);
 pid_t Fork(void);
 sighandler_t Signal(int signum, sighandler_t handler);
@@ -71,6 +73,11 @@ int Select(int nfds, fd_set *readfds, fd_set *writefds,
            fd_set *exceptfds, struct timeval *timeout);
 int Poll(struct pollfd *fds, nfds_t nfds, int timeout);
 int Shutdown(int fd, int howto);
+ssize_t Recvfrom(int sockfd, void *buf, size_t len, int flags,
+                 struct sockaddr *src_addr, socklen_t *addrlen);
+ssize_t Sendto(int sockfd, const void *buf, size_t lne, int flags,
+               const struct sockaddr *dst_addr, socklen_t addrlen);
+char *Sock_ntop(const struct sockaddr *sa, socklen_t salen);
 
 /* Error Handler */
 void err_ret(const char *fmt, ...);
@@ -86,6 +93,7 @@ ssize_t Writen(int fd, const void *vptr, size_t n);
 ssize_t readline(int fd, void*vptr, size_t maxlen);
 ssize_t Readline(int fd, void*vptr, size_t maxlen);
 
+/* TCP */
 void str_echo(int sockfd);
 void str_echo08(int sockfd);
 void str_cli(FILE *fp, int sockfd);
@@ -94,4 +102,9 @@ void bin_echo(int sockfd);
 void bin_cli(FILE *fp, int sockfd);
 void str_cli_select(FILE *fp, int sockfd);
 void str_cli_select02(FILE *fp, int sockfd);
+
+/* UDP */
+void dg_echo(int sockfd, SA *pcliaddr, socklen_t clilen);
+void dg_cli(FILE *fp, int sockfd, const SA *serveraddr, socklen_t serlen);
+void dg_cli01(FILE *fp, int sockfd, const SA *serveraddr, socklen_t serlen);
 #endif
