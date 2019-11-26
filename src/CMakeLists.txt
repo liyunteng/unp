@@ -4,6 +4,7 @@ add_subdirectory(epoll)
 add_subdirectory(sockopt)
 add_subdirectory(tcpcliserv)
 add_subdirectory(udpcliserv)
+add_subdirectory(names)
 # include_directories(${PROJECT_SOURCE_DIR}/include)
 # aux_source_directory(. SRC_LIST)
 

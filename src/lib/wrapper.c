@@ -65,6 +65,16 @@ Inet_pton(int family, const char *ptr, void *buf)
     return n;
 }
 
+const char*
+Inet_ntop(int af, const void *src, char *dst, socklen_t size)
+{
+    const char *n;
+    if ((n = inet_ntop(af, src, dst, size)) == NULL) {
+        err_sys("inet_ntop error");
+    }
+    return n;
+}
+
 int
 Close(int fd)
 {

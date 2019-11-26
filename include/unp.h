@@ -65,6 +65,7 @@ ssize_t Read(int fd, void *buf, size_t count);
 char *Fgets(char *s, int size, FILE *fp);
 int Fputs(const char *s, FILE *fp);
 int Inet_pton(int family, const char *ptr, void *buf);
+const char* Inet_ntop(int af, const void *src, char *dst, socklen_t size);
 void *Malloc(size_t len);
 void Pthread_mutex_lock(pthread_mutex_t*mptr);
 pid_t Fork(void);
