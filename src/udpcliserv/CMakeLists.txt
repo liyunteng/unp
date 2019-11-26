@@ -7,6 +7,13 @@ target_link_libraries(udpserv01 unp)
 add_executable(udpcli01 udpcli01.c)
 target_link_libraries(udpcli01 unp)
 
+add_executable(udpcli02 udpcli02.c)
+target_link_libraries(udpcli02 unp)
+
+add_executable(udpservselect udpservselect.c)
+target_link_libraries(udpservselect unp)
+
+
 # foreach(onefile ${SRC_LIST})
 #   message(${onefile})
 # endforeach()

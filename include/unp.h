@@ -78,6 +78,9 @@ ssize_t Recvfrom(int sockfd, void *buf, size_t len, int flags,
 ssize_t Sendto(int sockfd, const void *buf, size_t lne, int flags,
                const struct sockaddr *dst_addr, socklen_t addrlen);
 char *Sock_ntop(const struct sockaddr *sa, socklen_t salen);
+int Getsockname(int sockfd, struct sockaddr *address, socklen_t *len);
+int Setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+int Getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
 
 /* Error Handler */
 void err_ret(const char *fmt, ...);
@@ -106,5 +109,8 @@ void str_cli_select02(FILE *fp, int sockfd);
 /* UDP */
 void dg_echo(int sockfd, SA *pcliaddr, socklen_t clilen);
 void dg_cli(FILE *fp, int sockfd, const SA *serveraddr, socklen_t serlen);
+void dg_cliconnect(FILE *fp, int sockfd, const SA *serveraddr, socklen_t serlen);
 void dg_cli01(FILE *fp, int sockfd, const SA *serveraddr, socklen_t serlen);
+void dg_echoloop(int sockfd, SA *pcliaddr, socklen_t clilen);
+void dg_cliloop(FILE *fp, int sockfd, const SA *serveraddr, socklen_t serlen);
 #endif

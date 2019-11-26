@@ -25,7 +25,8 @@ main(int argc, char *argv[])
     /* if not connect, recvfrom can't return error when server not start */
     /* Connect(sockfd, (SA *)&servaddr, sizeof(servaddr)); */
 
-    dg_cli01(stdin, sockfd, (SA *)&servaddr, sizeof(servaddr));
+    dg_cliconnect(stdin, sockfd, (SA *)&servaddr, sizeof(servaddr));
+    /* dg_cliloop(stdin, sockfd, (SA *)&servaddr, sizeof(servaddr)); */
 
     return 0;
 }

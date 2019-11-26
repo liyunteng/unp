@@ -204,3 +204,33 @@ Malloc(size_t len)
     }
     return n;
 }
+
+int
+Getsockname(int sockfd, struct sockaddr *address, socklen_t *len)
+{
+    int n;
+    if ((n = getsockname(sockfd, address, len)) < 0) {
+        err_sys("getsockname error");
+    }
+    return n;
+}
+
+int
+Setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen)
+{
+    int n;
+    if ((n = setsockopt(sockfd, level, optname, optval, optlen)) < 0) {
+        err_sys("setsockopt error");
+    }
+    return n;
+}
+
+int
+Getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen)
+{
+    int n;
+    if ((n = getsockopt(sockfd, level, optname, optval, optlen)) < 0) {
+        err_sys("getsockopt error");
+    }
+    return n;
+}
