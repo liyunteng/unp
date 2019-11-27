@@ -8,7 +8,7 @@
 
 #include "unp.h"
 
-int         daemon_proc;
+int daemon_proc;
 static void err_doit(int, int, const char *, va_list);
 
 void
@@ -69,7 +69,7 @@ err_quit(const char *fmt, ...)
 static void
 err_doit(int errnoflag, int level, const char *fmt, va_list ap)
 {
-    int  errno_save, n;
+    int errno_save, n;
     char buf[MAXLINE + 1];
 
     errno_save = errno;

@@ -8,10 +8,10 @@
 int
 main(void)
 {
-    int                listenfd, connfd;
+    int listenfd, connfd;
     struct sockaddr_in servaddr;
-    char               buf[MAXLINE];
-    time_t             ticks;
+    char buf[MAXLINE];
+    time_t ticks;
 
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
     bzero(&servaddr, sizeof(servaddr));

@@ -7,18 +7,18 @@
 #include <limits.h>
 
 #ifndef OPEN_MAX
-#define OPEN_MAX 32
+#    define OPEN_MAX 32
 #endif
 
 int
 main(int argc, char *argv[])
 {
-    int                i, maxi, listenfd, connfd, sockfd;
-    int                nready;
-    ssize_t            n;
-    char               buf[MAXLINE];
-    socklen_t          clilen;
-    struct pollfd      client[OPEN_MAX];
+    int i, maxi, listenfd, connfd, sockfd;
+    int nready;
+    ssize_t n;
+    char buf[MAXLINE];
+    socklen_t clilen;
+    struct pollfd client[OPEN_MAX];
     struct sockaddr_in cliaddr, servaddr;
 
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);

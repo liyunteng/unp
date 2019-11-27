@@ -8,7 +8,7 @@
 int
 main(int argc, char *argv[])
 {
-    int                i, sockfd[5];
+    int i, sockfd[5];
     struct sockaddr_in servaddr;
 
     if (argc != 2) {

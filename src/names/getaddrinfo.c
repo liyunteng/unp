@@ -6,7 +6,7 @@
 #include "unp.h"
 #include <getopt.h>
 
-static const char *opts = "Pachf:p:t:s:S:";
+static const char *opts         = "Pachf:p:t:s:S:";
 static struct option longopts[] = {
     {"passive", no_argument, NULL, 'P'},
     {"all", no_argument, NULL, 'a'},
@@ -23,79 +23,90 @@ static struct option longopts[] = {
 void
 Usage(const char *name)
 {
-    err_quit(
-        "Usage: %s -[Pach] [-f <family>] [-p <protocol>] [-t <socktype>] [-s <host>] [-S <service>]", name);
+    err_quit("Usage: %s -[Pach] [-f <family>] "
+             "[-p <protocol>] [-t <socktype>] "
+             "[-s <host>] [-S <service>]",
+             name);
 }
 
-int
-main(int argc, char *argv[])
+void
+parse_opt(int argc, char *argv[], struct addrinfo *hints, const char **host,
+          const char **service)
 {
-    int              ret, i;
-    struct addrinfo  hints;
-    struct addrinfo *paddrs, *ptr;
-    char             buf[128];
-    int              opt, long_idx;
-    const char *host = NULL;
-        const char *service = NULL;
+    int opt, long_idx;
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family    = AF_UNSPEC;
-    if (argc == 1) {
-        Usage(argv[0]);
-    }
     while ((opt = getopt_long(argc, argv, opts, longopts, &long_idx)) > 0) {
         switch (opt) {
         case 'P':
-            hints.ai_flags |= AI_PASSIVE;
+            hints->ai_flags |= AI_PASSIVE;
             break;
         case 'a':
-            hints.ai_flags |= AI_ALL;
+            hints->ai_flags |= AI_ALL;
             break;
         case 'c':
-            hints.ai_flags |= AI_CANONNAME;
+            hints->ai_flags |= AI_CANONNAME;
             break;
         case 'h':
             Usage(argv[0]);
             break;
         case 'f':
             if (strcmp(optarg, "inet") == 0) {
-                hints.ai_family = AF_INET;
+                hints->ai_family = AF_INET;
             } else if (strcmp(optarg, "inet6") == 0) {
-                hints.ai_family = AF_INET6;
+                hints->ai_family = AF_INET6;
             } else {
                 err_quit("unsupport family");
             }
             break;
         case 'p':
             if (strcmp(optarg, "tcp") == 0) {
-                hints.ai_protocol = IPPROTO_TCP;
+                hints->ai_protocol = IPPROTO_TCP;
             } else if (strcmp(optarg, "udp") == 0) {
-                hints.ai_protocol = IPPROTO_UDP;
+                hints->ai_protocol = IPPROTO_UDP;
             } else {
                 err_quit("unsupport protocol");
             }
             break;
         case 't':
             if (strcmp(optarg, "stream") == 0) {
-                hints.ai_socktype = SOCK_STREAM;
+                hints->ai_socktype = SOCK_STREAM;
             } else if (strcmp(optarg, "dgram") == 0) {
-                hints.ai_socktype = SOCK_DGRAM;
+                hints->ai_socktype = SOCK_DGRAM;
             } else {
                 err_quit("unsupport socktype");
             }
             break;
         case 's':
-            host = optarg;
+            *host = optarg;
             break;
         case 'S':
-            service = optarg;
+            *service = optarg;
             break;
         default:
             Usage(argv[0]);
             break;
         }
     }
-    printf("host: %s\nservice: %s\n", host, service);
+}
+
+int
+getAddrInfo(int argc, char *argv[])
+{
+    int ret;
+    struct addrinfo hints;
+    struct addrinfo *paddrs, *ptr;
+
+    const char *host    = NULL;
+    const char *service = NULL;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    if (argc == 1) {
+        Usage(argv[0]);
+    }
+    parse_opt(argc, argv, &hints, &host, &service);
+
+    printf("host: %s\nservice: %s\n\n", host, service);
     ret = getaddrinfo(host, service, &hints, &paddrs);
     if (ret < 0) {
         printf("getaddrinfo error: %s\n", gai_strerror(ret));
@@ -127,6 +138,7 @@ main(int argc, char *argv[])
             printf("AI_NUMERICSERV ");
         }
         printf("\n");
+
         switch (ptr->ai_family) {
         case AF_INET:
             printf("family: AF_INET\n");
@@ -138,6 +150,7 @@ main(int argc, char *argv[])
             printf("family: %d(unknown)\n", ptr->ai_family);
             break;
         }
+
         switch (ptr->ai_socktype) {
         case SOCK_DGRAM:
             printf("socktype: SOCK_DGRAM\n");
@@ -158,7 +171,14 @@ main(int argc, char *argv[])
             printf("socktype: %d(unknown)\n", ptr->ai_socktype);
             break;
         }
+
         switch (ptr->ai_protocol) {
+        case IPPROTO_IP:
+            printf("protocal: IPPROTO_IP\n");
+            break;
+        case IPPROTO_IPV6:
+            printf("protocal: IPPROTO_IPV6\n");
+            break;
         case IPPROTO_TCP:
             printf("protocal: IPPROTO_TCP\n");
             break;
@@ -183,5 +203,12 @@ main(int argc, char *argv[])
     }
     freeaddrinfo(paddrs);
 
+    return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+    getAddrInfo(argc, argv);
     return 0;
 }

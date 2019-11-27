@@ -9,7 +9,7 @@ void
 sig_chld(int signo)
 {
     pid_t pid;
-    int   stat;
+    int stat;
 
     while ((pid = waitpid(-1, &stat, WNOHANG)) > 0) {
         printf("child %d terminated\n", pid);
@@ -20,9 +20,9 @@ sig_chld(int signo)
 int
 main(int argc, char *argv[])
 {
-    int                listenfd, connfd;
-    pid_t              childpid;
-    socklen_t          clilen;
+    int listenfd, connfd;
+    pid_t childpid;
+    socklen_t clilen;
     struct sockaddr_in cliaddr, servaddr;
 
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);

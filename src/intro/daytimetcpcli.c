@@ -9,8 +9,8 @@
 int
 main(int argc, char *argv[])
 {
-    int                sockfd, n;
-    char               recvline[MAXLINE + 1];
+    int sockfd, n;
+    char recvline[MAXLINE + 1];
     struct sockaddr_in serveraddr;
 
     if (argc != 2) {
@@ -28,7 +28,8 @@ main(int argc, char *argv[])
         err_quit("inet_pton error for %s", argv[1]);
     }
 
-    if (connect(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
+    if (connect(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))
+        < 0) {
         err_sys("connect error");
     }
 

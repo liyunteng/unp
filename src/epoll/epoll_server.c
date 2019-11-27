@@ -24,10 +24,10 @@
 static uint32_t g_id = 0;
 typedef struct {
     uint32_t id;
-    int      connfd;
-    char     addr[32];
-    char     recv_buf[BUFFSIZE];
-    char     send_buf[BUFFSIZE];
+    int connfd;
+    char addr[32];
+    char recv_buf[BUFFSIZE];
+    char send_buf[BUFFSIZE];
     uint32_t send_length;
     uint32_t recv_length;
     uint32_t sent_length;
@@ -56,9 +56,9 @@ get_response(context_t *ctx)
     if (ctx == NULL) {
         return -1;
     }
-    ctx->send_length =
-        snprintf(ctx->send_buf, sizeof(ctx->send_buf),
-                 "HTTP/1.1 200 OK\r\nContent-Length: 26\r\n\r\nabcdefghijklmnopqrstuvwxyz");
+    ctx->send_length = snprintf(ctx->send_buf, sizeof(ctx->send_buf),
+                                "HTTP/1.1 200 OK\r\nContent-Length: "
+                                "26\r\n\r\nabcdefghijklmnopqrstuvwxyz");
     /* memset(ctx->send_buf, 'c', sizeof(ctx->send_buf)); */
     /* ctx->send_length = sizeof(ctx->send_buf); */
     ctx->sent_length = 0;
@@ -69,10 +69,10 @@ get_response(context_t *ctx)
 int
 do_accept(int epollfd, struct epoll_event ev)
 {
-    int                connfd;
-    int                listenfd = ev.data.fd;
+    int connfd;
+    int listenfd = ev.data.fd;
     struct sockaddr_in cliaddr;
-    socklen_t          clilen = sizeof(cliaddr);
+    socklen_t clilen = sizeof(cliaddr);
     if (ev.events & EPOLLIN) {
         while (1) {
             connfd = accept(listenfd, (struct sockaddr *)&cliaddr, &clilen);
@@ -86,7 +86,8 @@ do_accept(int epollfd, struct epoll_event ev)
                 ctx->id     = g_id++;
                 ctx->connfd = connfd;
                 char ip[INET_ADDRSTRLEN];
-                snprintf(ctx->addr, sizeof(ctx->addr) - 1, "[%d] %s:%d", ctx->id,
+                snprintf(ctx->addr, sizeof(ctx->addr) - 1, "[%d] %s:%d",
+                         ctx->id,
                          inet_ntop(AF_INET, &cliaddr.sin_addr, ip, clilen),
                          ntohs(cliaddr.sin_port));
                 get_response(ctx);
@@ -122,8 +123,8 @@ quit:
 int
 do_server(int epollfd, struct epoll_event ev)
 {
-    int        connfd = -1;
-    int        n;
+    int connfd = -1;
+    int n;
     context_t *ctx = ev.data.ptr;
     if (ctx == NULL) {
         goto quit;
@@ -177,11 +178,12 @@ do_server(int epollfd, struct epoll_event ev)
         }
     } else if (ev.events & EPOLLOUT) {
         while (ctx->sent_length < ctx->send_length) {
-            n = send(connfd, ctx->send_buf + ctx->sent_length, ctx->send_length - ctx->sent_length,
-                     0);
+            n = send(connfd, ctx->send_buf + ctx->sent_length,
+                     ctx->send_length - ctx->sent_length, 0);
             if (n > 0) {
                 ctx->sent_length += n;
-                printf("send to %s %d/%d [%d]\n", ctx->addr, ctx->sent_length, ctx->send_length, n);
+                printf("send to %s %d/%d [%d]\n", ctx->addr, ctx->sent_length,
+                       ctx->send_length, n);
             } else if (n == 0) {
 
             } else if (n == -1) {
@@ -234,8 +236,8 @@ quit:
 int
 epoll_server(int port)
 {
-    int                epollfd, nfds;
-    int                listenfd;
+    int epollfd, nfds;
+    int listenfd;
     struct sockaddr_in servaddr;
     struct epoll_event ev, events[MAXEVENTS];
 

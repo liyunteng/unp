@@ -45,7 +45,7 @@ my_inet_ntop(int family, const void *addrptr, char *strptr, size_t len)
 char *
 sock_ntop(const struct sockaddr *sa, socklen_t salen)
 {
-    char        portstr[8];
+    char portstr[8];
     static char str[128];
 
     switch (sa->sa_family) {
@@ -89,9 +89,9 @@ Sock_ntop(const struct sockaddr *sa, socklen_t salen)
 ssize_t
 readn(int fd, void *vptr, size_t n)
 {
-    size_t  nleft;
+    size_t nleft;
     ssize_t nread;
-    char *  ptr;
+    char *ptr;
 
     ptr   = vptr;
     nleft = n;
@@ -123,8 +123,8 @@ Readn(int fd, void *vptr, size_t len)
 ssize_t
 writen(int fd, const void *vptr, size_t n)
 {
-    size_t      nleft;
-    ssize_t     nwritten;
+    size_t nleft;
+    ssize_t nwritten;
     const char *ptr;
 
     ptr   = vptr;
@@ -151,9 +151,9 @@ Writen(int fd, const void *vptr, size_t len)
     return n;
 }
 
-static int   read_cnt;
+static int read_cnt;
 static char *read_ptr;
-static char  read_buf[MAXLINE];
+static char read_buf[MAXLINE];
 static ssize_t
 my_read(int fd, char *ptr)
 {
@@ -176,7 +176,7 @@ ssize_t
 readline(int fd, void *vptr, size_t maxlen)
 {
     ssize_t n, rc;
-    char    c, *ptr;
+    char c, *ptr;
 
     ptr = vptr;
     for (n = 1; n < maxlen; n++) {
@@ -217,7 +217,7 @@ int
 sockfd_to_family(int sockfd)
 {
     struct sockaddr_storage ss;
-    socklen_t               len;
+    socklen_t len;
 
     len = sizeof(ss);
     if (getsockname(sockfd, (SA *)&ss, &len) < 0) {

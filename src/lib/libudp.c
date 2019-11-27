@@ -8,9 +8,9 @@
 void
 dg_echo(int sockfd, SA *pcliaddr, socklen_t clilen)
 {
-    int       n;
+    int n;
     socklen_t len;
-    char      msg[MAXLINE];
+    char msg[MAXLINE];
 
     for (;;) {
         len = clilen;
@@ -23,7 +23,7 @@ dg_echo(int sockfd, SA *pcliaddr, socklen_t clilen)
 void
 dg_cli(FILE *fp, int sockfd, const SA *pservaddr, socklen_t servlen)
 {
-    int  n;
+    int n;
     char sendline[MAXLINE], recvline[MAXLINE + 1];
 
     while (Fgets(sendline, MAXLINE, fp) != NULL) {
@@ -39,14 +39,14 @@ void
 dg_cliconnect(FILE *fp, int sockfd, const SA *servaddr, socklen_t servlen)
 {
     int n;
-    char sendline[MAXLINE], recvline[MAXLINE+1];
+    char sendline[MAXLINE], recvline[MAXLINE + 1];
 
     Connect(sockfd, (SA *)servaddr, servlen);
 
     while (Fgets(sendline, MAXLINE, fp) != NULL) {
         Write(sockfd, sendline, strlen(sendline));
 
-        n = Read(sockfd, recvline, MAXLINE);
+        n           = Read(sockfd, recvline, MAXLINE);
         recvline[n] = 0;
         Fputs(recvline, stdout);
     }
@@ -55,9 +55,9 @@ dg_cliconnect(FILE *fp, int sockfd, const SA *servaddr, socklen_t servlen)
 void
 dg_cli01(FILE *fp, int sockfd, const SA *servaddr, socklen_t servlen)
 {
-    int              n;
-    char             sendline[MAXLINE], recvline[MAXLINE + 1];
-    socklen_t        len;
+    int n;
+    char sendline[MAXLINE], recvline[MAXLINE + 1];
+    socklen_t len;
     struct sockaddr *preply_addr;
 
     preply_addr = Malloc(servlen);
@@ -81,7 +81,7 @@ dg_cli01(FILE *fp, int sockfd, const SA *servaddr, socklen_t servlen)
 #define DGLEN 1400
 
 void
-dg_cliloop(FILE *fp, int sockfd, const SA* servaddr, socklen_t servlen)
+dg_cliloop(FILE *fp, int sockfd, const SA *servaddr, socklen_t servlen)
 {
     int i;
     char sendline[DGLEN];
@@ -109,6 +109,6 @@ dg_echoloop(int sockfd, SA *cliaddr, socklen_t clilen)
     for (;;) {
         len = clilen;
         Recvfrom(sockfd, msg, MAXLINE, 0, cliaddr, &len);
-        count ++;
+        count++;
     }
 }

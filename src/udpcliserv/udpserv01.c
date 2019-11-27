@@ -8,7 +8,7 @@
 int
 main(int argc, char *argv[])
 {
-    int                sockfd;
+    int sockfd;
     struct sockaddr_in servaddr, cliaddr;
 
     sockfd = Socket(AF_INET, SOCK_DGRAM, 0);

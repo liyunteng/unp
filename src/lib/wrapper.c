@@ -65,7 +65,7 @@ Inet_pton(int family, const char *ptr, void *buf)
     return n;
 }
 
-const char*
+const char *
 Inet_ntop(int af, const void *src, char *dst, socklen_t size)
 {
     const char *n;
@@ -145,7 +145,8 @@ Signal(int signum, sighandler_t handler)
 }
 
 int
-Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+       struct timeval *timeout)
 {
     int n;
     if ((n = select(nfds, readfds, writefds, exceptfds, timeout)) < 0) {
@@ -175,8 +176,8 @@ Shutdown(int fd, int howto)
 }
 
 ssize_t
-Recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr,
-         socklen_t *addrlen)
+Recvfrom(int sockfd, void *buf, size_t len, int flags,
+         struct sockaddr *src_addr, socklen_t *addrlen)
 {
     ssize_t n;
     if ((n = recvfrom(sockfd, buf, len, flags, src_addr, addrlen)) < 0) {
@@ -186,8 +187,8 @@ Recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr
 }
 
 ssize_t
-Sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dst_addr,
-       socklen_t addrlen)
+Sendto(int sockfd, const void *buf, size_t len, int flags,
+       const struct sockaddr *dst_addr, socklen_t addrlen)
 {
     ssize_t n;
     if ((n = sendto(sockfd, buf, len, flags, dst_addr, addrlen)) < 0) {
@@ -226,7 +227,8 @@ Getsockname(int sockfd, struct sockaddr *address, socklen_t *len)
 }
 
 int
-Setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen)
+Setsockopt(int sockfd, int level, int optname, const void *optval,
+           socklen_t optlen)
 {
     int n;
     if ((n = setsockopt(sockfd, level, optname, optval, optlen)) < 0) {

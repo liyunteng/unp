@@ -8,14 +8,15 @@ void
 sig_chld(int signo)
 {
     pid_t pid;
-    int   stat;
+    int stat;
 
     pid = wait(&stat);
     printf("child %d terminated\n", pid);
     return;
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     int listenfd, connfd, udpfd, nready, maxfdp;
     char msg[MAXLINE];
@@ -29,9 +30,9 @@ int main(int argc, char *argv[])
     listenfd = Socket(AF_INET, SOCK_STREAM, 0);
 
     memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
+    servaddr.sin_family      = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(SERV_PORT);
+    servaddr.sin_port        = htons(SERV_PORT);
 
     Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
     Bind(listenfd, (SA *)&servaddr, sizeof(servaddr));
@@ -39,12 +40,11 @@ int main(int argc, char *argv[])
 
     udpfd = Socket(AF_INET, SOCK_DGRAM, 0);
     memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
+    servaddr.sin_family      = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(SERV_PORT);
+    servaddr.sin_port        = htons(SERV_PORT);
 
     Bind(udpfd, (SA *)&servaddr, sizeof(servaddr));
-
 
     Signal(SIGCHLD, sig_chld);
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
         }
 
         if (FD_ISSET(listenfd, &rset)) {
-            len = sizeof(cliaddr);
+            len    = sizeof(cliaddr);
             connfd = Accept(listenfd, (SA *)&cliaddr, &len);
             if ((childpid = Fork()) == 0) {
                 Close(listenfd);
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
         }
         if (FD_ISSET(udpfd, &rset)) {
             len = sizeof(cliaddr);
-            n = Recvfrom(udpfd, msg, MAXLINE, 0, (SA *)&cliaddr, &len);
+            n   = Recvfrom(udpfd, msg, MAXLINE, 0, (SA *)&cliaddr, &len);
             Sendto(udpfd, msg, n, 0, (SA *)&cliaddr, len);
         }
     }

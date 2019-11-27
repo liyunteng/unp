@@ -9,7 +9,7 @@ void
 str_echo(int sockfd)
 {
     ssize_t n;
-    char    buf[MAXLINE];
+    char buf[MAXLINE];
 
 again:
     while ((n = read(sockfd, buf, MAXLINE)) > 0) {
@@ -25,9 +25,9 @@ again:
 void
 str_echo08(int sockfd)
 {
-    long    arg1, arg2;
+    long arg1, arg2;
     ssize_t n;
-    char    line[MAXLINE];
+    char line[MAXLINE];
 
     for (;;) {
         if ((n = Readline(sockfd, line, MAXLINE)) == 0) {
@@ -68,8 +68,8 @@ struct result {
 void
 bin_echo(int sockfd)
 {
-    ssize_t       n;
-    struct args   args;
+    ssize_t n;
+    struct args args;
     struct result result;
 
     for (;;) {
@@ -83,8 +83,8 @@ bin_echo(int sockfd)
 void
 bin_cli(FILE *fp, int sockfd)
 {
-    char          sendline[MAXLINE];
-    struct args   args;
+    char sendline[MAXLINE];
+    struct args args;
     struct result result;
 
     while (Fgets(sendline, MAXLINE, fp) != NULL) {
@@ -105,9 +105,9 @@ bin_cli(FILE *fp, int sockfd)
 void
 str_cli_select(FILE *fp, int sockfd)
 {
-    int    maxfd;
+    int maxfd;
     fd_set rset;
-    char   sendline[MAXLINE], recvline[MAXLINE];
+    char sendline[MAXLINE], recvline[MAXLINE];
 
     FD_ZERO(&rset);
     for (;;) {
@@ -134,10 +134,10 @@ str_cli_select(FILE *fp, int sockfd)
 void
 str_cli_select02(FILE *fp, int sockfd)
 {
-    int    maxfd, stdineof;
+    int maxfd, stdineof;
     fd_set rset;
-    char   buf[MAXLINE];
-    int    n;
+    char buf[MAXLINE];
+    int n;
 
     stdineof = 0;
     FD_ZERO(&rset);
