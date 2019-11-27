@@ -4,6 +4,9 @@ aux_source_directory(. SRC_LIST)
 add_executable(hostent hostent.c)
 target_link_libraries(hostent unp)
 
+add_executable(getaddrinfo getaddrinfo.c)
+target_link_libraries(getaddrinfo unp)
+
 add_executable(daytimetcpclinames daytimetcpcli.c)
 target_link_libraries(daytimetcpclinames unp)
 

@@ -60,6 +60,17 @@ sock_ntop(const struct sockaddr *sa, socklen_t salen)
         }
         return (str);
     }
+    case AF_INET6: {
+        struct sockaddr_in6 *sin = (struct sockaddr_in6 *)sa;
+        if (inet_ntop(AF_INET6, &sin->sin6_addr, str, sizeof(str)) == NULL) {
+            return (NULL);
+        }
+        if (ntohs(sin->sin6_port) != 0) {
+            snprintf(portstr, sizeof(portstr), ":%d", ntohs(sin->sin6_port));
+            strcat(str, portstr);
+        }
+        return (str);
+    }
         /* TODO: */
     }
     return (NULL);
