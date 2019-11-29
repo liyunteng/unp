@@ -246,3 +246,13 @@ Getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen)
     }
     return n;
 }
+
+int
+Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+    int n;
+    if ((n = getpeername(sockfd,addr,addrlen)) != 0) {
+        err_sys("getpeername error");
+    }
+    return n;
+}

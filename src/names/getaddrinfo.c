@@ -6,11 +6,13 @@
 #include "unp.h"
 #include <getopt.h>
 
-static const char *opts         = "Pachf:p:t:s:S:";
+static const char *opts         = "PacnNhf:p:t:s:S:";
 static struct option longopts[] = {
     {"passive", no_argument, NULL, 'P'},
     {"all", no_argument, NULL, 'a'},
     {"canonname", no_argument, NULL, 'c'},
+    {"numbericHost", no_argument, NULL, 'n'},
+    {"numbericService", no_argument, NULL, 'N'},
     {"help", no_argument, NULL, 'h'},
     {"family", required_argument, NULL, 'f'},
     {"protocal", required_argument, NULL, 'p'},
@@ -23,7 +25,7 @@ static struct option longopts[] = {
 void
 Usage(const char *name)
 {
-    err_quit("Usage: %s -[Pach] [-f <family>] "
+    err_quit("Usage: %s -[PNnach] [-f <family>] "
              "[-p <protocol>] [-t <socktype>] "
              "[-s <host>] [-S <service>]",
              name);
@@ -45,6 +47,12 @@ parse_opt(int argc, char *argv[], struct addrinfo *hints, const char **host,
             break;
         case 'c':
             hints->ai_flags |= AI_CANONNAME;
+            break;
+        case 'n':
+            hints->ai_flags |= AI_NUMERICHOST;
+            break;
+        case 'N':
+            hints->ai_flags |= AI_NUMERICSERV;
             break;
         case 'h':
             Usage(argv[0]);
@@ -95,15 +103,15 @@ getAddrInfo(int argc, char *argv[])
     int ret;
     struct addrinfo hints;
     struct addrinfo *paddrs, *ptr;
-
     const char *host    = NULL;
     const char *service = NULL;
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
     if (argc == 1) {
         Usage(argv[0]);
     }
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
     parse_opt(argc, argv, &hints, &host, &service);
 
     printf("host: %s\nservice: %s\n\n", host, service);
@@ -114,30 +122,32 @@ getAddrInfo(int argc, char *argv[])
     }
 
     for (ptr = paddrs; ptr != NULL; ptr = ptr->ai_next) {
-        printf("falgs: ");
-        if (ptr->ai_flags & AI_CANONNAME) {
-            printf("AI_CANONNAME ");
-        }
+        char flags[128] = {0};
         if (ptr->ai_flags & AI_PASSIVE) {
-            printf("AI_PASSIVE ");
+            strcat(flags, " AI_PASSIVE");
+        }
+        if (ptr->ai_flags & AI_CANONNAME) {
+            strcat(flags, " AI_CANONNAME");
         }
         if (ptr->ai_flags & AI_ADDRCONFIG) {
-            printf("AI_ADDRCONFIG ");
+            strcat(flags, " AI_ADDRCONFIG");
         }
         if (ptr->ai_flags & AI_ALL) {
-            printf("AI_ALL ");
+            strcat(flags, " AI_ALL");
         }
         if (ptr->ai_flags & AI_NUMERICHOST) {
-            printf("AI_NUMERICHOST ");
-            ;
+            strcat(flags, " AI_NUMERICHOST");
         }
         if (ptr->ai_flags & AI_V4MAPPED) {
-            printf("AI_V4MAPPED ");
+            strcat(flags, " AI_V4MAPPED");
         }
         if (ptr->ai_flags & AI_NUMERICSERV) {
-            printf("AI_NUMERICSERV ");
+            strcat(flags, " AI_NUMERICSERV");
         }
-        printf("\n");
+        if (strlen(flags) > 0) {
+            printf("flags:%s\n", flags);
+        }
+
 
         switch (ptr->ai_family) {
         case AF_INET:

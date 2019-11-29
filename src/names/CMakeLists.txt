@@ -10,6 +10,15 @@ target_link_libraries(getaddrinfo unp)
 add_executable(daytimetcpclinames daytimetcpcli.c)
 target_link_libraries(daytimetcpclinames unp)
 
+add_executable(daytimetcpclinames01 daytimetcpcli01.c)
+target_link_libraries(daytimetcpclinames01 unp)
+
+add_executable(daytimetcpsrvnames01 daytimetcpsrv01.c)
+target_link_libraries(daytimetcpsrvnames01 unp)
+
+add_executable(tcp_connect tcp_connect.c)
+target_link_libraries(tcp_connect unp)
+
 # foreach(onefile ${SRC_LIST})
 #   message(${onefile})
 # endforeach()

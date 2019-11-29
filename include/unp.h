@@ -83,6 +83,7 @@ int Setsockopt(int sockfd, int level, int optname, const void *optval,
                socklen_t optlen);
 int Getsockopt(int sockfd, int level, int optname, void *optval,
                socklen_t *optlen);
+int Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
 /* Error Handler */
 void err_ret(const char *fmt, ...);
@@ -107,6 +108,8 @@ void bin_echo(int sockfd);
 void bin_cli(FILE *fp, int sockfd);
 void str_cli_select(FILE *fp, int sockfd);
 void str_cli_select02(FILE *fp, int sockfd);
+int tcp_connect(const char *host, const char *service);
+int tcp_listen(const char *host, const char *service, socklen_t *addrlen);
 
 /* UDP */
 void dg_echo(int sockfd, SA *pcliaddr, socklen_t clilen);
