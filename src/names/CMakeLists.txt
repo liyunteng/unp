@@ -7,10 +7,13 @@ target_link_libraries(hostent unp)
 add_executable(getaddrinfo getaddrinfo.c)
 target_link_libraries(getaddrinfo unp)
 
-add_executable(daytimetcpclinames daytimetcpcli.c)
-target_link_libraries(daytimetcpclinames unp)
+add_executable(tcpclient tcpclient.c)
+target_link_libraries(tcpclient unp)
 
-add_executable(daytimetcpclinames01 daytimetcpcli01.c)
+add_executable(tcpserver tcpserver.c)
+target_link_libraries(tcpserver unp)
+
+add_executable(daytimetcpclinames01 daytimetcpclinames01.c)
 target_link_libraries(daytimetcpclinames01 unp)
 
 add_executable(daytimetcpsrvnames01 daytimetcpsrv01.c)

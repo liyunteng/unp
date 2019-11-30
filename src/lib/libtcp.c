@@ -180,6 +180,12 @@ tcp_connect(const char *host, const char *serv)
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
+    if (host != NULL && inet_aton(host, NULL) == 1) {
+        hints.ai_flags |= AI_NUMERICHOST;
+    }
+    if (serv != NULL & atoi(serv) > 0) {
+        hints.ai_flags |= AI_NUMERICSERV;
+    }
     /* hints.ai_protocol = IPPROTO_TCP; */
     hints.ai_socktype = SOCK_STREAM;
 
@@ -217,6 +223,12 @@ tcp_listen(const char *host, const char *serv, socklen_t *addrlen)
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_flags    = AI_PASSIVE;
+    if (host != NULL && inet_aton(host, NULL) == 1) {
+        hints.ai_flags |= AI_NUMERICHOST;
+    }
+    if (serv != NULL && atoi(serv) > 0) {
+        hints.ai_flags |= AI_NUMERICSERV;
+    }
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 

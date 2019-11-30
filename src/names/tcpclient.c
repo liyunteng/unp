@@ -1,5 +1,5 @@
 /*
- * daytimetcpcli01.c - daytimetcpcli01
+ * tcpclient.c - tcpclient
  *
  * Date   : 2019/11/30
  */
@@ -9,7 +9,6 @@ int
 main(int argc, char *argv[])
 {
     int sockfd, n;
-    char recvline[MAXLINE + 1];
     socklen_t len;
     struct sockaddr_storage ss;
 
@@ -23,9 +22,6 @@ main(int argc, char *argv[])
     Getpeername(sockfd, (SA *)&ss, &len);
     printf("connected to %s\n", Sock_ntop((SA *)&ss, len));
 
-    while ((n = Read(sockfd, recvline, MAXLINE)) > 0) {
-        recvline[n] = 0;
-        Fputs(recvline, stdout);
-    }
+    str_cli_select02(stdin, sockfd);
     return 0;
 }
