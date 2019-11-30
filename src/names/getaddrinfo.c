@@ -148,7 +148,6 @@ getAddrInfo(int argc, char *argv[])
             printf("flags:%s\n", flags);
         }
 
-
         switch (ptr->ai_family) {
         case AF_INET:
             printf("family: AF_INET\n");

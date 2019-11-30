@@ -5,10 +5,11 @@
  */
 #include "unp.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     int sockfd, n;
-    char recvline[MAXLINE+1];
+    char recvline[MAXLINE + 1];
     socklen_t len;
     struct sockaddr_storage ss;
 

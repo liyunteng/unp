@@ -6,7 +6,8 @@
 #include "unp.h"
 #include <time.h>
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     int listenfd, connfd;
     socklen_t len;
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
     listenfd = tcp_listen(argv[1], argv[2], NULL);
 
     for (;;) {
-        len = sizeof(cliaddr);
+        len    = sizeof(cliaddr);
         connfd = Accept(listenfd, (SA *)&cliaddr, &len);
         printf("connection from %s\n", Sock_ntop((SA *)&cliaddr, len));
 

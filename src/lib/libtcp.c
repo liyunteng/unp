@@ -184,8 +184,8 @@ tcp_connect(const char *host, const char *serv)
     hints.ai_socktype = SOCK_STREAM;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0) {
-        err_quit("tcp_connect error for %s, %s: %s",
-                 host, serv, gai_strerror(n));
+        err_quit("tcp_connect error for %s, %s: %s", host, serv,
+                 gai_strerror(n));
     }
     ressave = res;
 
@@ -216,13 +216,13 @@ tcp_listen(const char *host, const char *serv, socklen_t *addrlen)
     struct addrinfo hints, *res, *ressave;
 
     memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_flags = AI_PASSIVE;
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags    = AI_PASSIVE;
+    hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0) {
-        err_quit("tcp_listen error for %s, %s: %s",
-                 host, serv, gai_strerror(n));
+        err_quit("tcp_listen error for %s, %s: %s", host, serv,
+                 gai_strerror(n));
     }
     ressave = res;
 

@@ -5,7 +5,8 @@
  */
 #include "unp.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     if (argc != 3) {
         err_quit("Usage: %s <host> <service>", argv[0]);

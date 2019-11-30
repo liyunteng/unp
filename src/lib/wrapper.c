@@ -251,7 +251,7 @@ int
 Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
     int n;
-    if ((n = getpeername(sockfd,addr,addrlen)) != 0) {
+    if ((n = getpeername(sockfd, addr, addrlen)) != 0) {
         err_sys("getpeername error");
     }
     return n;
