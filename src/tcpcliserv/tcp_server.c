@@ -1,5 +1,5 @@
 /*
- * tcpserver.c - tcpserver
+ * tcp_server.c - tcp_server
  *
  * Date   : 2019/11/30
  */
@@ -12,18 +12,20 @@
 int
 main(int argc, char *argv[])
 {
-    int listenfd, connfd, sockfd;
+    int listenfd = -1, connfd, sockfd;
     int nready, i, maxi, n;
     char buf[MAXLINE];
     socklen_t clilen, addrlen;
-    struct sockaddr_in cliaddr;
+    struct sockaddr_storage cliaddr;
     struct pollfd client[OPEN_MAX];
 
-    if (argc != 2) {
-        err_quit("Usage: %s <port>", argv[0]);
+    if (argc == 2) {
+        listenfd = tcp_listen(NULL, argv[1], &addrlen);
+    } else if (argc == 3) {
+        listenfd = tcp_listen(argv[1], argv[2], &addrlen);
+    } else {
+        err_quit("Usage: %s [<host>] <service>", argv[0]);
     }
-
-    listenfd = tcp_listen(NULL, argv[1], &addrlen);
 
     client[0].fd     = listenfd;
     client[0].events = POLLRDNORM;
@@ -38,6 +40,7 @@ main(int argc, char *argv[])
         if (client[0].revents & POLLRDNORM) {
             clilen = sizeof(cliaddr);
             connfd = Accept(listenfd, (SA *)&cliaddr, &clilen);
+            /* Getpeername(connfd, (SA *)&cliaddr, &clilen); */
             err_msg("%s connected", Sock_ntop((SA *)&cliaddr, clilen));
 
             for (i = 1; i < OPEN_MAX; i++) {
