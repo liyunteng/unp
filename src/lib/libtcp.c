@@ -222,7 +222,7 @@ tcp_listen(const char *host, const char *serv, socklen_t *addrlen)
     struct addrinfo hints, *res, *ressave;
 
     memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_flags    = AI_PASSIVE;
+    hints.ai_flags = AI_PASSIVE;
     if (host != NULL && inet_aton(host, NULL) == 1) {
         hints.ai_flags |= AI_NUMERICHOST;
     }

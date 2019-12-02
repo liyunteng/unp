@@ -30,12 +30,11 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_BINARY_DIR}/lib)
 
-
 if (EXISTS ${PROJECT_SOURCE_DIR}/src AND
     IS_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
   add_subdirectory(src)
 else()
-  message("src not exists")
+  message(WARNING "src not exists")
 endif()
 
 # find_program(curl "/usr/bin/curl")

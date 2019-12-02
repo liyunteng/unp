@@ -1,18 +1,11 @@
-aux_source_directory(. SRC_LIST)
-
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR} SRC_LIST)
 # add_compile_options(-std=c99 -Wall)
-add_executable(udpserv01 udpserv01.c)
-target_link_libraries(udpserv01 unp)
 
-add_executable(udpcli01 udpcli01.c)
-target_link_libraries(udpcli01 unp)
-
-add_executable(udpcli02 udpcli02.c)
-target_link_libraries(udpcli02 unp)
-
-add_executable(udpservselect udpservselect.c)
-target_link_libraries(udpservselect unp)
-
+foreach (file ${SRC_LIST})
+  get_filename_component(exe ${file} NAME_WLE)
+  add_executable(${exe} ${file})
+  target_link_libraries(${exe} unp)
+endforeach(file)
 
 # foreach(onefile ${SRC_LIST})
 #   message(${onefile})

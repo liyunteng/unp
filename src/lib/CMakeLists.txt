@@ -8,7 +8,7 @@ if (BUILDSTATIC)
   add_library(lib_static STATIC ${SRC_LIST})
   set_target_properties(lib_static PROPERTIES OUTPUT_NAME "unp")
 else ()
-  message("Don't build static library")
+  message(STATUS "Don't build static library")
 endif()
 
 # set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
