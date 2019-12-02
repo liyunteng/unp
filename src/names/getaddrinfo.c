@@ -7,7 +7,7 @@
 #include <getopt.h>
 
 static const char *opts         = "PacnNhf:p:t:s:S:";
-static struct option longopts[] = {
+static const struct option longopts[] = {
     {"passive", no_argument, NULL, 'P'},
     {"all", no_argument, NULL, 'a'},
     {"canonname", no_argument, NULL, 'c'},
@@ -36,6 +36,9 @@ parse_opt(int argc, char *argv[], struct addrinfo *hints, const char **host,
           const char **service)
 {
     int opt, long_idx;
+    if (argc == 1) {
+        Usage(argv[0]);
+    }
 
     while ((opt = getopt_long(argc, argv, opts, longopts, &long_idx)) > 0) {
         switch (opt) {
@@ -105,10 +108,6 @@ getAddrInfo(int argc, char *argv[])
     struct addrinfo *paddrs, *ptr;
     const char *host    = NULL;
     const char *service = NULL;
-
-    if (argc == 1) {
-        Usage(argv[0]);
-    }
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
