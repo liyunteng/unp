@@ -65,4 +65,7 @@ void err_dump(const char *fmt, ...);
 void err_msg(const char *fmt, ...);
 void err_quit(const char *fmt, ...);
 
+
+/* daemon_init */
+int daemon_init(const char *pname, int facility);
 #endif
