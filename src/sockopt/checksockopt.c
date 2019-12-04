@@ -1,5 +1,5 @@
 /*
- * checkopt.c - checkopt
+ * checksockopt.c - checksockopt
  *
  * Date   : 2019/11/25
  */
