@@ -226,7 +226,6 @@ sockfd_to_family(int sockfd)
     return (ss.ss_family);
 }
 
-typedef void Sigfunc(int);
 static Sigfunc *
 my_signal(int signo, Sigfunc *func)
 {

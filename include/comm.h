@@ -49,6 +49,7 @@
 #ifndef sighandler_t
 typedef void (*sighandler_t)(int);
 #endif  // sighandler_t
+typedef void Sigfunc(int);
 typedef struct sockaddr SA;
 
 ssize_t readn(int fd, void *vptr, size_t n);
@@ -68,4 +69,10 @@ void err_quit(const char *fmt, ...);
 
 /* daemon_init */
 int daemon_init(const char *pname, int facility);
+
+/* timeout */
+int connect_timeo(int sockfd, const SA*saptr, socklen_t salen, int nsec);
+void dg_cli_signal_timeo(FILE *fp, int sockfd, const SA*pservaddr, socklen_t servlen);
+int readable_timeo(int fd, int sec);
+void dg_cli_timeo(FILE *fp, int sockfd, const SA*pservaddr, socklen_t servlen);
 #endif

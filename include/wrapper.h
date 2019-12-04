@@ -24,6 +24,7 @@ void *Malloc(size_t len);
 void Pthread_mutex_lock(pthread_mutex_t *mptr);
 pid_t Fork(void);
 sighandler_t Signal(int signum, sighandler_t handler);
+int Sigaction(int sig, const struct sigaction *restrict act, struct sigaction *restrict oact);
 int Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
            struct timeval *timeout);
 int Poll(struct pollfd *fds, nfds_t nfds, int timeout);

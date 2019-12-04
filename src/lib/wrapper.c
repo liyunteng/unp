@@ -145,6 +145,17 @@ Signal(int signum, sighandler_t handler)
 }
 
 int
+Sigaction(int sig, const struct sigaction *restrict act,
+          struct sigaction *restrict oact)
+{
+    int n;
+    if ((n = sigaction(sig, act, oact)) != 0) {
+        err_sys("sigaction error");
+    }
+    return n;
+}
+
+int
 Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
        struct timeval *timeout)
 {
