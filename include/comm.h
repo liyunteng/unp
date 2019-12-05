@@ -66,13 +66,15 @@ void err_dump(const char *fmt, ...);
 void err_msg(const char *fmt, ...);
 void err_quit(const char *fmt, ...);
 
-
 /* daemon_init */
 int daemon_init(const char *pname, int facility);
 
 /* timeout */
-int connect_timeo(int sockfd, const SA*saptr, socklen_t salen, int nsec);
-void dg_cli_signal_timeo(FILE *fp, int sockfd, const SA*pservaddr, socklen_t servlen);
+int connect_timeo(int sockfd, const SA *saptr, socklen_t salen, int nsec);
+void dg_cli_signal_timeo(FILE *fp, int sockfd, const SA *pservaddr,
+                         socklen_t servlen);
 int readable_timeo(int fd, int sec);
-void dg_cli_timeo(FILE *fp, int sockfd, const SA*pservaddr, socklen_t servlen);
+void dg_cli_timeo(FILE *fp, int sockfd, const SA *pservaddr, socklen_t servlen);
+void dg_cli_sockopt(FILE *fp, int sockfd, const SA *pservaddr,
+                    socklen_t serlen);
 #endif

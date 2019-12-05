@@ -11,15 +11,15 @@
 extern int daemon_proc;
 
 int
-daemon_init(const char*pname, int facility)
+daemon_init(const char *pname, int facility)
 {
     int i;
     pid_t pid;
 
     if ((pid = Fork()) < 0)
-        return(-1);
+        return (-1);
     else if (pid)
-        _exit(0);               /* parent terminates */
+        _exit(0); /* parent terminates */
 
     /* child 1 continues ... */
     if (setsid() < 0)
@@ -29,13 +29,13 @@ daemon_init(const char*pname, int facility)
     if ((pid = Fork()) < 0)
         return (-1);
     else if (pid)
-        _exit(0);               /* child 1 terminates */
+        _exit(0); /* child 1 terminates */
 
     /* child 2 continues ... */
 
-    daemon_proc = 1;            /* for err_XXX() functions */
+    daemon_proc = 1; /* for err_XXX() functions */
 
-    chdir("/");                 /* change working directory */
+    chdir("/"); /* change working directory */
 
     /* close off file descriptors */
     for (i = 0; i < MAXFD; i++) {

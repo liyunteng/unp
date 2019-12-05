@@ -6,7 +6,7 @@
 #include "unp.h"
 #include <getopt.h>
 
-static const char *opts         = "PacnNhf:p:t:s:S:";
+static const char *opts               = "PacnNhf:p:t:s:S:";
 static const struct option longopts[] = {
     {"passive", no_argument, NULL, 'P'},
     {"all", no_argument, NULL, 'a'},

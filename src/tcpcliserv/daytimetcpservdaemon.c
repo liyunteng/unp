@@ -6,7 +6,8 @@
 #include "unp.h"
 #include <time.h>
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     int listenfd, connfd;
     socklen_t addrlen, len;
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
     cliaddr = Malloc(addrlen);
 
     for (;;) {
-        len = addrlen;
+        len    = addrlen;
         connfd = Accept(listenfd, cliaddr, &len);
         err_msg("connection form %s", Sock_ntop(cliaddr, len));
 

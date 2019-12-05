@@ -267,3 +267,13 @@ Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
     }
     return n;
 }
+
+int
+Fcntl(int fd, int cmd, ...)
+{
+    int n;
+    if ((n = fcntl(fd, cmd)) < 0) {
+        err_sys("fcntl error");
+    }
+    return n;
+}
