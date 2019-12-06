@@ -6,7 +6,7 @@
 #include "unp.h"
 
 #ifndef OPEN_MAX
-#define OPEN_MAX 32
+#    define OPEN_MAX 32
 #endif
 
 int
