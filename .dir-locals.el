@@ -23,6 +23,9 @@
 ;;
 
 ;;; Code:
+
+;; ((c-mode . ((eval . (setq semanticdb-project-roots (list (expand-file-name "."))))
+;;             (eval . (message "in project unp")))))
 ((c-mode . ((semanticdb-project-roots "~/git/unp"))))
 
 (provide '.dir-locals)
