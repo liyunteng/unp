@@ -9,6 +9,7 @@
 #include "comm.h"
 #include "libtcp.h"
 #include "libudp.h"
+#include "libnonblock.h"
 #include "wrapper.h"
 
 #endif

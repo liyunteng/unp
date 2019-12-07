@@ -111,7 +111,7 @@ dg_cli_timeo(FILE *fp, int sockfd, const SA *pservaddr, socklen_t servlen)
 }
 
 void
-dg_cli_sockopt(FILE *fp, int sockfd, const SA *pservaddr, socklen_t serlen)
+dg_cli_sockopt(FILE *fp, int sockfd, const SA *pservaddr, socklen_t servlen)
 {
     int n;
     char sendline[MAXLINE], recvline[MAXLINE + 1];
