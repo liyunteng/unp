@@ -16,6 +16,9 @@ void bin_echo(int sockfd);
 void bin_cli(FILE *fp, int sockfd);
 void str_cli_select(FILE *fp, int sockfd);
 void str_cli_select02(FILE *fp, int sockfd);
+
+
+struct addrinfo *host_serv(const char *host, const char *serv, int family, int socktyp);
 int tcp_connect(const char *host, const char *service);
 int tcp_listen(const char *host, const char *service, socklen_t *addrlen);
 

@@ -22,7 +22,9 @@ int main(int argc, char *argv[])
     servaddr.sin_port   = htons(port);
     Inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
 
-    Connect(sockfd, (SA *)&servaddr, sizeof(servaddr));
+    if (connect_nonblock(sockfd,(SA *)&servaddr,sizeof(servaddr),5) < 0) {
+        err_sys("connect nonblock error");
+    }
     str_cli_nonblock_fork(stdin, sockfd);
     return 0;
 }
