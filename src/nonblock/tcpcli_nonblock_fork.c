@@ -5,7 +5,8 @@
  */
 #include "unp.h"
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     int sockfd;
     struct sockaddr_in servaddr;
@@ -22,7 +23,7 @@ int main(int argc, char *argv[])
     servaddr.sin_port   = htons(port);
     Inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
 
-    if (connect_nonblock(sockfd,(SA *)&servaddr,sizeof(servaddr),5) < 0) {
+    if (connect_nonblock(sockfd, (SA *)&servaddr, sizeof(servaddr), 5) < 0) {
         err_sys("connect nonblock error");
     }
     str_cli_nonblock_fork(stdin, sockfd);

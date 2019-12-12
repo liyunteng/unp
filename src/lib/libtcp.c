@@ -179,8 +179,8 @@ host_serv(const char *host, const char *serv, int family, int socktype)
     struct addrinfo hints, *res;
 
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = family;
-    hints.ai_flags = AI_CANONNAME;
+    hints.ai_family   = family;
+    hints.ai_flags    = AI_CANONNAME;
     hints.ai_socktype = socktype;
 
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0)

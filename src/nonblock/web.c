@@ -6,21 +6,23 @@
 #include "web.h"
 
 /* ./web 3 www.baidu.com / "/s?w=abc" "/s?w=def" "/s?w=ghi" */
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     int i, fd, n, maxnconn, flags, error;
     char buf[MAXLINE];
     fd_set rs, ws;
 
     if (argc < 5) {
-        err_quit("Usage: %s <#conns> <hostname> <homepage> <file1> ...", argv[0]);
+        err_quit("Usage: %s <#conns> <hostname> <homepage> <file1> ...",
+                 argv[0]);
     }
     maxnconn = atoi(argv[1]);
 
     nfiles = min(argc - 4, MAXFILES);
     for (i = 0; i < nfiles; i++) {
-        file[i].f_name = argv[i+4];
-        file[i].f_host = argv[2];
+        file[i].f_name  = argv[i + 4];
+        file[i].f_host  = argv[2];
         file[i].f_flags = 0;
     }
     printf("nfiles = %d\n", nfiles);
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
 
     FD_ZERO(&rset);
     FD_ZERO(&wset);
-    maxfd = -1;
+    maxfd       = -1;
     nlefttoread = nlefttoconn = nfiles;
 
     nconn = 0;
@@ -49,18 +51,20 @@ int main(int argc, char *argv[])
         rs = rset;
         ws = wset;
 
-        n = Select(maxfd+1, &rs, &ws, NULL, NULL);
+        n = Select(maxfd + 1, &rs, &ws, NULL, NULL);
 
         for (i = 0; i < nfiles; i++) {
             flags = file[i].f_flags;
             if (flags == 0 || flags & F_DONE)
                 continue;
             fd = file[i].f_fd;
-            if (flags & F_CONNECTING &&
-                (FD_ISSET(fd, &rs) || FD_ISSET(fd, &ws))) {
+            if (flags & F_CONNECTING
+                && (FD_ISSET(fd, &rs) || FD_ISSET(fd, &ws))) {
                 n = sizeof(error);
-                if (getsockopt(fd,SOL_SOCKET,SO_ERROR,&error,&n) < 0 || error != 0) {
-                    err_ret("nonblocking connect failed for %s", file[i].f_name);
+                if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &n) < 0
+                    || error != 0) {
+                    err_ret("nonblocking connect failed for %s",
+                            file[i].f_name);
                 }
 
                 printf("connection established for %s\n", file[i].f_name);
@@ -83,7 +87,6 @@ int main(int argc, char *argv[])
         }
     }
 
-
     return 0;
 }
 
@@ -93,7 +96,7 @@ home_page(const char *host, const char *fname)
     int fd, n;
     char line[MAXLINE];
 
-    fd = tcp_connect(host,SERV);
+    fd = tcp_connect(host, SERV);
     if (fd < 0) {
         err_quit("tcp connect error");
     }
@@ -123,7 +126,7 @@ start_connect(struct file *fptr)
         err_quit("host_serv error");
     }
 
-    fd = Socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    fd         = Socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
     fptr->f_fd = fd;
     printf("start_connect for %s, fd %d\n", fptr->f_name, fd);
 
@@ -147,7 +150,7 @@ start_connect(struct file *fptr)
 }
 
 void
-write_get_cmd(struct file* fptr)
+write_get_cmd(struct file *fptr)
 {
     int n;
     char line[MAXLINE];

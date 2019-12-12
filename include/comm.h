@@ -17,13 +17,13 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/time.h>
 
 #include <sys/select.h>
 /* #include <sys/sysctl.h> */

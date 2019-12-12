@@ -139,7 +139,7 @@ str_cli_nonblock_fork(FILE *fp, int sockfd)
     pid_t pid;
     char sendline[MAXLINE], recvline[MAXLINE];
 
-    if ((pid = fork()) == 0) {  /* child */
+    if ((pid = fork()) == 0) { /* child */
         while (Readline(sockfd, recvline, MAXLINE) > 0)
             Fputs(recvline, stdout);
 
@@ -149,7 +149,7 @@ str_cli_nonblock_fork(FILE *fp, int sockfd)
 
     /* parent */
     while (Fgets(sendline, MAXLINE, fp) != 0) {
-        Writen(sockfd,sendline,strlen(sendline));
+        Writen(sockfd, sendline, strlen(sendline));
     }
 
     Shutdown(sockfd, SHUT_WR);
@@ -171,7 +171,7 @@ connect_nonblock(int sockfd, const SA *saptr, socklen_t salen, int nsec)
     error = 0;
     if ((n = connect(sockfd, saptr, salen)) < 0) {
         if (errno != EINPROGRESS) {
-            return(-1);
+            return (-1);
         }
     }
 
@@ -181,21 +181,21 @@ connect_nonblock(int sockfd, const SA *saptr, socklen_t salen, int nsec)
 
     FD_ZERO(&rset);
     FD_SET(sockfd, &rset);
-    wset = rset;
-    tv.tv_sec = nsec;
+    wset       = rset;
+    tv.tv_sec  = nsec;
     tv.tv_usec = 0;
 
     if ((n = Select(sockfd + 1, &rset, &wset, NULL, nsec ? &tv : NULL)) == 0) {
         /* timeout */
         close(sockfd);
         errno = ETIMEDOUT;
-        return(-1);
+        return (-1);
     }
 
     if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
         len = sizeof(error);
         if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
-            return(-1);
+            return (-1);
         }
     } else {
         err_quit("select error: sockfd not set");
@@ -206,7 +206,7 @@ done:
     if (error) {
         close(sockfd);
         errno = error;
-        return(-1);
+        return (-1);
     }
     return 0;
 }
