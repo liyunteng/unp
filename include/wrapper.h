@@ -21,6 +21,7 @@ int Fputs(const char *s, FILE *fp);
 int Inet_pton(int family, const char *ptr, void *buf);
 const char *Inet_ntop(int af, const void *src, char *dst, socklen_t size);
 void *Malloc(size_t len);
+void *Calloc(size_t nmemb, size_t size);
 void Pthread_mutex_lock(pthread_mutex_t *mptr);
 pid_t Fork(void);
 sighandler_t Signal(int signum, sighandler_t handler);
@@ -42,5 +43,6 @@ int Getsockopt(int sockfd, int level, int optname, void *optval,
                socklen_t *optlen);
 int Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
-int Fcntl(int fd, int cmd, ...);
+int Fcntl(int fd, int cmd, int val);
+int Ioctl(int fd, unsigned long request, void *val);
 #endif

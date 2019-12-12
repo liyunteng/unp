@@ -71,6 +71,8 @@ sock_ntop(const struct sockaddr *sa, socklen_t salen)
         }
         return (str);
     }
+    deafult:
+        err_sys("sock_ntop: unsupport family: %d", sa->sa_family);
         /* TODO: */
     }
     return (NULL);

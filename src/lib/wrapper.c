@@ -227,6 +227,17 @@ Malloc(size_t len)
     return n;
 }
 
+void *
+Calloc(size_t nmemb, size_t size)
+{
+    void *n = NULL;
+    if ((n = calloc(nmemb, size)) == NULL) {
+        err_sys("calloc error");
+    }
+    return n;
+}
+
+
 int
 Getsockname(int sockfd, struct sockaddr *address, socklen_t *len)
 {
@@ -269,10 +280,20 @@ Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 }
 
 int
-Fcntl(int fd, int cmd, ...)
+Ioctl(int fd, unsigned long request, void* val)
+{
+    int n = 0;
+    if ((n = ioctl(fd, request, val)) < 0) {
+        err_sys("ioctl error");
+    }
+    return n;
+}
+
+int
+Fcntl(int fd, int cmd, int val)
 {
     int n;
-    if ((n = fcntl(fd, cmd)) < 0) {
+    if ((n = fcntl(fd, cmd, val)) < 0) {
         err_sys("fcntl error");
     }
     return n;
