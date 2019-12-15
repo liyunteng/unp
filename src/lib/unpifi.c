@@ -4,137 +4,100 @@
  * Date   : 2019/12/12
  */
 #include "unpifi.h"
+#include <ifaddrs.h>
 
 struct ifi_info *
 get_ifi_info(int family, int doaliases)
 {
     struct ifi_info *ifi, *ifihead, **ifipnext;
-    int sockfd, len, lastlen, flags, myflags, idx = 0, hlen = 0;
-    char *ptr, *buf, lastname[IFNAMSIZ], *cptr, *haddr, *sdlname;
-    struct ifconf ifc;
-    struct ifreq *ifr, ifrcopy;
-    struct sockaddr_in *sinptr;
-    struct sockaddr_in6 *sin6ptr;
+    int sockfd, flags, hlen = 0;
+    char lastname[IFNAMSIZ], *haddr, *cptr;
+    struct ifreq ifr;
+    struct ifaddrs *ifap, *ifaptr;
+    ssize_t addrlen = 0;
 
     sockfd = Socket(family, SOCK_DGRAM, 0);
 
-    lastlen = 0;
-    len = 100 * sizeof(struct ifreq);
-    /* TODO: replace SIOCGIFCONF by getifaddrs */
-    for (;;) {
-        buf = Malloc(len);
-        ifc.ifc_len = len;
-        ifc.ifc_buf = buf;
-        if (ioctl(sockfd, SIOCGIFCONF, &ifc) < 0) {
-            if (errno != EINVAL || lastlen != 0)
-                err_sys("ioctl error");
-        } else {
-            if (ifc.ifc_len == lastlen)
-                break;
-            lastlen = ifc.ifc_len;
-        }
-        len += 10 * sizeof(struct ifreq);
-        free(buf);
+    if (getifaddrs(&ifap) < 0) {
+        err_sys("getifaddrs error");
     }
 
     ifihead = NULL;
     ifipnext = &ifihead;
     lastname[0] = 0;
-    sdlname = NULL;
 
-    for (ptr = (char *)ifc.ifc_req; ptr < buf + ifc.ifc_len;) {
-        ifr = (struct ifreq *)ptr;
-
-        switch (ifr->ifr_addr.sa_family) {
-        case AF_INET6:
-            len = sizeof(struct sockaddr_in6);
-            break;
-        case AF_INET:
-        default:
-            len = sizeof(struct sockaddr);
-            break;
-        }
-        ptr += sizeof(struct ifreq);
-
-        /* ?? */
-        /* ifr->ifr_addr.sa_family = family; */
-        if (ifr->ifr_addr.sa_family != family) {
+    for(ifaptr = ifap; ifaptr != NULL; ifaptr = ifaptr->ifa_next) {
+        if(ifaptr->ifa_addr->sa_family != family) {
             continue;
         }
-
-        myflags = 0;
-        if ((cptr = strchr(ifr->ifr_name, ':')) != NULL)
+        if ((cptr = strchr(ifaptr->ifa_name, ':')) != NULL) {
             *cptr = 0;
-        if (strncmp(lastname, ifr->ifr_name, IFNAMSIZ) == 0) {
-            if (doaliases == 0) {
-                continue;
+            if (strncmp(lastname, ifaptr->ifa_name, IFNAMSIZ) == 0) {
+                if (doaliases == 0) {
+                    continue;
+                }
             }
-            myflags = IFI_ALIAS;
         }
-        memcpy(lastname, ifr->ifr_name, IFNAMSIZ);
+        memcpy(lastname, ifaptr->ifa_name, IFNAMSIZ);
+        memcpy(ifr.ifr_name, ifaptr->ifa_name, IFNAMSIZ);
 
-        ifrcopy = *ifr;
-        Ioctl(sockfd, SIOCGIFFLAGS, &ifrcopy);
-        flags = ifrcopy.ifr_flags;
-        if ((flags & IFF_UP) == 0)
-            continue;
+        flags = ifaptr->ifa_flags;
         ifi = Calloc(1, sizeof(struct ifi_info));
         *ifipnext = ifi;
         ifipnext = &ifi->ifi_next;
         ifi->ifi_flags = flags;
-        ifi->ifi_myflags = myflags;
 
-        Ioctl(sockfd, SIOCGIFMTU, &ifrcopy);
-        ifi->ifi_mtu = ifrcopy.ifr_mtu;
-
-        memcpy(ifi->ifi_name, ifr->ifr_name, IFI_NAME);
+        memcpy(ifi->ifi_name, ifaptr->ifa_name, IFI_NAME);
         ifi->ifi_name[IFI_NAME-1] = 0;
 
-        if (sdlname == NULL || strcmp(sdlname, ifr->ifr_name) != 0) {
-            idx = hlen = 0;
-        }
-        ifi->ifi_index = idx;
-        ifi->ifi_hlen = hlen;
-        if (ifi->ifi_hlen > IFI_HADDR)
-            ifi->ifi_hlen = IFI_HADDR;
-        if (hlen)
-            memcpy(ifi->ifi_haddr, haddr, ifi->ifi_hlen);
+        Ioctl(sockfd, SIOCGIFINDEX, &ifr);
+        ifi->ifi_index = ifr.ifr_ifindex;
 
-        switch (ifr->ifr_addr.sa_family) {
+
+        switch (ifaptr->ifa_addr->sa_family) {
         case AF_INET:
-            sinptr = (struct sockaddr_in *)&ifr->ifr_addr;
-            ifi->ifi_addr = Calloc(1, sizeof(struct sockaddr_in));
-            memcpy(ifi->ifi_addr, sinptr, sizeof(struct sockaddr_in));
-            if (flags & IFF_BROADCAST) {
-                Ioctl(sockfd, SIOCGIFBRDADDR, &ifrcopy);
-                sinptr = (struct sockaddr_in *)&ifrcopy.ifr_broadaddr;
-                ifi->ifi_brdaddr = Calloc(1, sizeof(struct sockaddr_in));
-                memcpy(ifi->ifi_brdaddr, sinptr, sizeof(struct sockaddr_in));
-            }
-            if (flags & IFF_POINTOPOINT) {
-                Ioctl(sockfd, SIOCGIFDSTADDR, &ifrcopy);
-                sinptr = (struct sockaddr_in *)&ifrcopy.ifr_dstaddr;
-                ifi->ifi_dstaddr = Calloc(1, sizeof(struct sockaddr_in));
-                memcpy(ifi->ifi_dstaddr, sinptr, sizeof(struct sockaddr_in));
-            }
+            addrlen = sizeof(struct sockaddr_in);
             break;
         case AF_INET6:
-            sin6ptr = (struct sockaddr_in6 *)&ifr->ifr_addr;
-            ifi->ifi_addr = Calloc(1, sizeof(struct sockaddr_in6));
-            memcpy(ifi->ifi_addr, sin6ptr, sizeof(struct sockaddr_in6));
-
-            if (flags & IFF_POINTOPOINT) {
-                Ioctl(sockfd, SIOCGIFDSTADDR, &ifrcopy);
-                sin6ptr = (struct sockaddr_in6 *)&ifrcopy.ifr_dstaddr;
-                ifi->ifi_dstaddr = Calloc(1, sizeof(struct sockaddr_in6));
-                memcpy(ifi->ifi_dstaddr, sin6ptr, sizeof(struct sockaddr_in6));
-            }
+            addrlen = sizeof(struct sockaddr_in6);
             break;
         default:
+            addrlen = sizeof(struct sockaddr);
             break;
         }
+        ifi->ifi_addr = Calloc(1, addrlen);
+        memcpy(ifi->ifi_addr, ifaptr->ifa_addr, addrlen);
+        if (flags & IFF_BROADCAST && ifaptr->ifa_broadaddr != NULL) {
+            ifi->ifi_brdaddr = Calloc(1, addrlen);
+            memcpy(ifi->ifi_brdaddr, ifaptr->ifa_broadaddr, addrlen);
+        }
+        if (flags & IFF_POINTOPOINT && ifaptr->ifa_dstaddr != NULL) {
+            ifi->ifi_dstaddr = Calloc(1, addrlen);
+            memcpy(ifi->ifi_dstaddr, ifaptr->ifa_dstaddr, addrlen);
+        }
+        if (ifaptr->ifa_netmask != NULL) {
+            ifi->ifi_netmask = Calloc(1, addrlen);
+            memcpy(ifi->ifi_netmask, ifaptr->ifa_netmask, addrlen);
+        }
+
+        Ioctl(sockfd, SIOCGIFMTU, &ifr);
+        ifi->ifi_mtu = ifr.ifr_mtu;
+
+        Ioctl(sockfd, SIOCGIFTXQLEN, &ifr);
+        ifi->ifi_txqlen = ifr.ifr_qlen;
+
+        Ioctl(sockfd, SIOCGIFMETRIC, &ifr);
+        ifi->ifi_metric = ifr.ifr_metric;
+
+        Ioctl(sockfd, SIOCGIFHWADDR, &ifr);
+        ifi->ifi_hlen = 6;
+        memcpy(ifi->ifi_haddr, ifr.ifr_hwaddr.sa_data, 6);
+
+        Ioctl(sockfd, SIOCGIFMAP, &ifr);
+        ifi->ifi_map = Calloc(1, sizeof(struct ifmap));
+        memcpy(ifi->ifi_map, &ifr.ifr_map, sizeof(struct ifmap));
     }
-    free(buf);
+    freeifaddrs(ifap);
     return(ifihead);
 }
 
@@ -162,6 +125,12 @@ free_ifi_info(struct ifi_info *ifihead)
         }
         if (ifi->ifi_dstaddr != NULL) {
             free(ifi->ifi_dstaddr);
+        }
+        if (ifi->ifi_netmask != NULL) {
+            free(ifi->ifi_netmask);
+        }
+        if (ifi->ifi_map != NULL) {
+            free(ifi->ifi_map);
         }
         ifinext = ifi->ifi_next;
         free(ifi);
