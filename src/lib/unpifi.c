@@ -10,8 +10,8 @@ struct ifi_info *
 get_ifi_info(int family, int doaliases)
 {
     struct ifi_info *ifi, *ifihead, **ifipnext;
-    int sockfd, flags, hlen = 0;
-    char lastname[IFNAMSIZ], *haddr, *cptr;
+    int sockfd, flags;
+    char lastname[IFNAMSIZ], *cptr;
     struct ifreq ifr;
     struct ifaddrs *ifap, *ifaptr;
     ssize_t addrlen = 0;
