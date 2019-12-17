@@ -221,6 +221,9 @@ udp_server(const char *host, const char *serv, socklen_t *lenp)
         if (sockfd < 0)
             continue;
 
+        /* int on = 1;
+         * Setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)); */
+
         if (bind(sockfd, res->ai_addr, res->ai_addrlen) == 0)
             break;
 
