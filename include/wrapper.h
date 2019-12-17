@@ -29,6 +29,12 @@ int Sigaction(int sig, const struct sigaction *restrict act,
               struct sigaction *restrict oact);
 int Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
            struct timeval *timeout);
+int Sigemptyset(sigset_t *set);
+int Sigfillset(sigset_t *set);
+int Sigaddset(sigset_t *set, int signum);
+int Sigdelset(sigset_t *set, int signum);
+int Sigismember(const sigset_t *set, int signum);
+int Sigprocmask(int how, const sigset_t *set, sigset_t *oset);
 int Poll(struct pollfd *fds, nfds_t nfds, int timeout);
 int Shutdown(int fd, int howto);
 ssize_t Recvfrom(int sockfd, void *buf, size_t len, int flags,

@@ -155,6 +155,61 @@ Sigaction(int sig, const struct sigaction *restrict act,
     return n;
 }
 
+int Sigemptyset(sigset_t *set)
+{
+    int n;
+    if ((n = sigemptyset(set)) != 0) {
+        err_sys("sigemptyset error");
+    }
+    return n;
+}
+
+int Sigfillset(sigset_t *set)
+{
+    int n;
+    if ((n = sigfillset(set)) != 0) {
+        err_sys("sigfillset error");
+    }
+    return n;
+}
+
+int Sigaddset(sigset_t *set, int signum)
+{
+    int n;
+    if ((n = sigaddset(set, signum)) != 0) {
+        err_sys("sigaddset error");
+    }
+    return n;
+}
+
+int Sigdelset(sigset_t *set, int signum)
+{
+    int n;
+    if ((n = sigdelset(set, signum)) != 0) {
+        err_sys("sigdelset error");
+    }
+    return n;
+}
+
+
+int Sigismember(const sigset_t *set, int signum)
+{
+    int n;
+    if ((n = sigismember(set, signum)) != 0) {
+        err_sys("sigismember error");
+    }
+    return n;
+}
+
+int Sigprocmask(int how, const sigset_t *set, sigset_t *oset)
+{
+    int n;
+    if ((n = sigprocmask(how, set, oset)) != 0) {
+        err_sys("sigprocmask error");
+    }
+    return n;
+}
+
 int
 Select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
        struct timeval *timeout)

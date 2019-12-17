@@ -23,7 +23,8 @@ main(int argc, char *argv[])
 
     sockfd = Socket(AF_INET, SOCK_DGRAM, 0);
 
-    dg_cli_broadcast(stdin, sockfd, (SA *)&servaddr, sizeof(servaddr));
+    /* dg_cli_broadcast(stdin, sockfd, (SA *)&servaddr, sizeof(servaddr)); */
+    dg_cli_broadcast_pselect(stdin, sockfd, (SA *)&servaddr, sizeof(servaddr));
 
     return 0;
 }
