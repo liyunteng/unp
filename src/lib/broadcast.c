@@ -5,8 +5,8 @@
  */
 
 #include "unp.h"
-static void recvfrom_alarm(int);
 
+static void recvfrom_alarm(int);
 void
 dg_cli_broadcast(FILE *fp, int sockfd, const SA*pservaddr, socklen_t servlen)
 {
