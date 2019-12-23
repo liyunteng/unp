@@ -353,3 +353,13 @@ Fcntl(int fd, int cmd, int val)
     }
     return n;
 }
+
+int
+Gettimeofday(struct timeval *tp, void *tzp)
+{
+    int n;
+    if ((n = gettimeofday(tp, tzp)) != 0) {
+        err_sys("gettimeofday error");
+    }
+    return n;
+}

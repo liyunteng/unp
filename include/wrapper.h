@@ -51,4 +51,5 @@ int Getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
 int Fcntl(int fd, int cmd, int val);
 int Ioctl(int fd, unsigned long request, void *val);
+int Gettimeofday(struct timeval *tv, void *tzp);
 #endif
