@@ -1,4 +1,4 @@
-/*
+ /*
  * unprtt.h - unprtt
  *
  * Date   : 2019/12/23
@@ -14,7 +14,7 @@
  * RTO = SRTT + min(G, K*RTTVAR)
  *
  * Other:
- * RTTVAR = (1-beta) * SRTT + beta * |SRTT-RTT|
+ * RTTVAR = (1-beta) * RTTVAR + beta * |SRTT-RTT|
  * SRTT= (1-alpha) * SRTT + alpha * RTT
  * RTO = SRTT + MAX(G, K*RTTVAR)
  *
