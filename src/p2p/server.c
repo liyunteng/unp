@@ -11,31 +11,41 @@
 #include "libp2p.h"
 
 static int
-udp_server_recv_data(int sockfd, struct epoll_event ev, char *buf, size_t len)
+udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len)
 {
     int n, sn;
     struct sockaddr cliaddr;
     socklen_t clilen = sizeof(cliaddr);
-    char send_buf[BUFFSIZE];
+    uint8_t send_buf[BUFFSIZE];
     if(ev.events & EPOLLIN) {
         n = recvfrom(sockfd, buf, len, 0, (struct sockaddr *)&cliaddr, &clilen);
         if (n > 0) {
-            Debug("recv: %s", buf);
+            stun_header_t *binding = (stun_header_t *)buf;
+            binding->msg_type = ntohs(binding->msg_type);
+            binding->magic = ntohl(binding->magic);
+            binding->id_hi = be32toh(binding->id_hi);
+            binding->id_low = be64toh(binding->id_low);
+            Debug("msg_type: 0x%x magic: 0x%x id: 0x%lx",
+                  binding->msg_type,
+                  binding->magic,
+                  binding->id_low
+                );
+
             switch (cliaddr.sa_family) {
             case AF_INET: {
                 struct sockaddr_in *sin = (struct sockaddr_in *)&cliaddr;
-                inet_ntop(cliaddr.sa_family, &sin->sin_addr, send_buf, sizeof(send_buf));
+                inet_ntop(cliaddr.sa_family, &sin->sin_addr, (char *)send_buf, sizeof(send_buf));
                 break;
             }
             case AF_INET6: {
                 struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&cliaddr;
-                inet_ntop(cliaddr.sa_family, &sin6->sin6_addr, send_buf, sizeof(send_buf));
+                inet_ntop(cliaddr.sa_family, &sin6->sin6_addr, (char *)send_buf, sizeof(send_buf));
                 break;
             }
             default:
                 break;
             }
-            sn = sendto(sockfd, send_buf, strlen(send_buf), 0, (struct sockaddr *)&cliaddr, clilen);
+            sn = sendto(sockfd, send_buf, strlen((char *)send_buf), 0, (struct sockaddr *)&cliaddr, clilen);
             Debug("send: %s", send_buf);
             return n;
         } else if (n == 0) {
@@ -67,7 +77,7 @@ server(const char *host, const char *service)
     int epfd, nfds;
     struct epoll_event ev, events[MAXEVENTS];
     int timeout = 3 * 1000;
-    char recv_buf[BUFFSIZE];
+    uint8_t recv_buf[BUFFSIZE];
 
     sockfd = udp_server_sockfd(host, service, &salen);
     if (sockfd < 0) {
@@ -121,7 +131,6 @@ int main(int argc, char *argv[])
         return -1;
     }
     server(argv[1], argv[2]);
-    return 0;
     return 0;
 }
 

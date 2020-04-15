@@ -14,6 +14,8 @@
 #include <errno.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <time.h>
+
 #include "libp2p.h"
 
 int
@@ -149,4 +151,83 @@ udp_server_sockfd(const char *host, const char *service, socklen_t *lenp)
         return -1;
     }
     return (sockfd);
+}
+
+int stun_get_binding_request(uint8_t *buf, size_t *len)
+{
+    if (!buf || !len) {
+        return -1;
+    }
+    unsigned long r;
+    stun_header_t binding;
+    memset(&binding, 0, sizeof(binding));
+    binding.msg_type = htons(STUN_MSG_TYPE_BINDING_REQUEST);
+    binding.magic = htonl(STUN_MAGIC);
+    binding.msg_length = 0;
+
+    r = 0x0102030405060708;
+    binding.id_hi = 0;
+    binding.id_low = htobe64(r);
+    /* memcpy(binding.id, &r, sizeof(r)); */
+
+    memcpy(buf, &binding, sizeof(binding));
+    *len = sizeof(binding);
+    return *len;
+}
+
+int stun_parse_request(uint8_t* buf,size_t len,char* ip,int* port)
+{
+    if (!buf || len <= 0 || !ip || !port) {
+        Error("invalid argument");
+        return -1;
+    }
+
+    stun_header_t *header = (stun_header_t *)buf;
+    header->msg_type = ntohs(header->msg_type);
+    header->msg_length = ntohs(header->msg_length);
+    switch (header->msg_type) {
+    case STUN_MSG_TYPE_BINDING_REQUEST:
+    {
+        if (header->msg_length > 0) {
+            stun_attr_header_t *attr = (stun_attr_header_t *)(buf + sizeof(stun_header_t));
+            attr->type = ntohs(attr->type);
+            attr->length = ntohs(attr->length);
+            switch (attr->type) {
+            case STUN_ATTR_XOR_MAPPED_ADDRESS: {
+                if (attr->length > 0) {
+                    mapped_address_t *map = (mapped_address_t *)(buf + sizeof(stun_header_t) + sizeof(stun_attr_header_t));
+                    map->port = ntohs(map->port);
+                    map->port ^= STUN_MAGIC >> 16;
+                    map->address = ntohl(map->address);
+                    map->address ^= STUN_MAGIC;
+
+                    sprintf(ip, "%d.%d.%d.%d",
+                            map->address >> 24,
+                            map->address >> 16 & 0xff,
+                            map->address >> 8 & 0xff,
+                            map->address & 0xff);
+                    *port = map->port;
+                    return 0;
+                }
+            }
+            case STUN_ATTR_MAPPED_ADDRESS: {
+                if (attr->length > 0) {
+                    mapped_address_t *map = (mapped_address_t *)(buf + sizeof(stun_header_t) + sizeof(stun_attr_header_t));
+                    map->port = ntohs(map->port);
+                    map->address = ntohl(map->address);
+                    sprintf(ip, "%d.%d.%d.%d",
+                            map->address >> 24,
+                            map->address >> 16 & 0xff,
+                            map->address >> 8 & 0xff,
+                            map->address & 0xff);
+                    *port = map->port;
+                    return 0;
+                }
+            }
+            }
+        }
+    }
+    }
+
+    return -1;
 }

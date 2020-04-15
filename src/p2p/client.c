@@ -12,23 +12,23 @@
 #include "libp2p.h"
 
 static int
-udp_client_send_data(int sockfd, char *buf, size_t len)
+udp_client_send_data(int sockfd, uint8_t *buf, size_t len)
 {
     int n;
     n = send(sockfd, buf, len, 0);
-    assert(n == (int)strlen(buf));
-    Debug("send: %s", buf);
+    assert(n == (int)len);
+    Debug("send: %lu", len);
     return n;
 }
 
 static int
-udp_client_recv_data(int sockfd, struct epoll_event ev, char *buf, size_t len)
+udp_client_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len)
 {
     int n;
     if(ev.events & EPOLLIN) {
         n = recv(sockfd, buf, len, 0);
         if (n > 0) {
-            Debug("recv: %s", buf);
+            Debug("recv: %d", n);
             return n;
         } else if (n == 0) {
             Info("disconnected");
@@ -60,8 +60,9 @@ client(const char *host, const char *service)
     int epfd, nfds;
     struct epoll_event ev, events[MAXEVENTS];
     int timeout = 3 * 1000;
-    char send_buf[BUFFSIZE] = "This is a test";
-    char recv_buf[BUFFSIZE];
+    uint8_t send_buf[BUFFSIZE];
+    uint8_t recv_buf[BUFFSIZE];
+    size_t buflen;
 
     sockfd = udp_client_sockfd(host, service, (struct sockaddr **)&sa, &salen);
     if (sockfd < 0) {
@@ -85,7 +86,10 @@ client(const char *host, const char *service)
         Error("epoll_ctl EPOLL_CTL_ADD failed: %s", strerror(errno));
         return -1;
     }
-    udp_client_send_data(sockfd, send_buf, strlen(send_buf));
+
+    buflen = sizeof(send_buf);
+    stun_get_binding_request(send_buf, &buflen);
+    udp_client_send_data(sockfd, send_buf, buflen);
     for (;;) {
         nfds = epoll_wait(epfd, events, MAXEVENTS, timeout);
         if (nfds == -1) {
@@ -98,7 +102,7 @@ client(const char *host, const char *service)
         }
 
         if (nfds == 0) {
-            udp_client_send_data(sockfd, send_buf, strlen(send_buf));
+            udp_client_send_data(sockfd, send_buf, buflen);
         }
 
         for (int i = 0; i < nfds; i++) {
