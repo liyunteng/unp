@@ -17,7 +17,6 @@ udp_client_send_data(int sockfd, uint8_t *buf, size_t len)
     int n;
     n = send(sockfd, buf, len, 0);
     assert(n == (int)len);
-    Debug("send: %lu", len);
     return n;
 }
 
@@ -28,7 +27,10 @@ udp_client_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
     if(ev.events & EPOLLIN) {
         n = recv(sockfd, buf, len, 0);
         if (n > 0) {
-            Debug("recv: %d", n);
+            char ip[64];
+            int port = 0;
+            stun_parse_request(buf,n, ip, &port);
+            Info("ip: %s:%d, recv: %d", ip, port, n);
             return n;
         } else if (n == 0) {
             Info("disconnected");
@@ -61,6 +63,7 @@ client(const char *host, const char *service)
     struct epoll_event ev, events[MAXEVENTS];
     int timeout = 3 * 1000;
     uint8_t send_buf[BUFFSIZE];
+    int send_len = 0;
     uint8_t recv_buf[BUFFSIZE];
     size_t buflen;
 
@@ -88,8 +91,10 @@ client(const char *host, const char *service)
     }
 
     buflen = sizeof(send_buf);
-    stun_get_binding_request(send_buf, &buflen);
-    udp_client_send_data(sockfd, send_buf, buflen);
+    stun_trans_id id;
+    stun_make_trans_id(id);
+    send_len = stun_get_binding_request(send_buf, buflen, id);
+    udp_client_send_data(sockfd, send_buf, send_len);
     for (;;) {
         nfds = epoll_wait(epfd, events, MAXEVENTS, timeout);
         if (nfds == -1) {
@@ -102,7 +107,7 @@ client(const char *host, const char *service)
         }
 
         if (nfds == 0) {
-            udp_client_send_data(sockfd, send_buf, buflen);
+            udp_client_send_data(sockfd, send_buf, send_len);
         }
 
         for (int i = 0; i < nfds; i++) {

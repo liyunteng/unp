@@ -33,18 +33,19 @@ int udp_server_sockfd(const char *host, const char *service, socklen_t *lenp);
 
 #define STUN_ATTR_HEADER_SIZE 4
 #define STUN_HEADER_SIZE 20
+#define STUN_TRANS_ID_SIZE 12
 
 typedef enum {
-    STUN_REQUEST = 0,
-    STUN_INDICATION = 1,
-    STUN_RESPONSE = 2,
-    STUN_ERROR = 3,
+    STUN_CLASS_REQUEST    = 0x00,
+    STUN_CLASS_INDICATION = 0x01,
+    STUN_CLASS_RESPONSE   = 0x10,
+    STUN_CLASS_ERROR      = 0x11,
 } stun_class;
 
 /* stun_header_t msg_type */
 typedef enum {
-    STUN_BINDING_REQUEST      = 0x0001, /* RFC5389 */
-    STUN_SHARE_SECRET_REQUEST = 0x0002, /* old RFC3489 */
+    STUN_BINDING              = 0x0001, /* RFC5389 */
+    STUN_SHARE_SECRET         = 0x0002, /* old RFC3489 */
     STUN_ALLOCATE             = 0x0003, /* TURN-12 */
     STUN_SET_ACTIVE_DST       = 0x0004, /* TURN-04 */
     STUN_REFRESH              = 0x0004, /* TURN-12 */
@@ -120,7 +121,7 @@ typedef enum {
     /* 0x8071 - 0xC000 */
     STUN_ATTR_NOMINATION = 0xC001,
     STUN_ATTR_/* 0xC002 - 0xFFFF */
-} stun_attr;
+} stun_attr_type;
 
 
 typedef struct {
@@ -129,21 +130,35 @@ typedef struct {
 } stun_attr_header_t;
 
 typedef struct {
+    stun_attr_header_t header;
+    uint8_t buf[0];
+} stun_attr;
+
+typedef struct {
     uint8_t reseved;
     uint8_t family;
     uint16_t port;
     uint32_t address;
 } mapped_address_t;
 
+typedef uint8_t stun_trans_id[STUN_TRANS_ID_SIZE];
 typedef struct {
     uint16_t msg_type;
     uint16_t msg_length;
     uint32_t magic; /* always be 0x2112A442 */
-    uint32_t id_hi;
-    uint64_t id_low;
+    stun_trans_id id;
 } stun_header_t;
 
-int stun_get_binding_request(uint8_t *buf, size_t *len);
+typedef struct {
+    stun_header_t header;
+    stun_attr_header_t attr[0];
+} stun_msg;
+
+int stun_get_binding_request(uint8_t *buf, size_t len, stun_trans_id id);
+int stun_get_binding_response(uint8_t *buf, size_t len, stun_trans_id id, struct sockaddr *addr);
 int stun_parse_request(uint8_t *buf, size_t len, char *ip, int *port);
-const char * stun_msg_type_to_string(stun_msg_type type);
+uint16_t stun_get_type(stun_class class,  stun_msg_type type);
+const char * stun_msg_type_to_string(uint16_t type);
+void stun_make_trans_id(stun_trans_id id);
+int stun_trans_id_to_string(stun_trans_id id, char *buf, size_t len);
 #endif

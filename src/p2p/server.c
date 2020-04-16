@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include "libp2p.h"
 
 static int
@@ -16,47 +17,49 @@ udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
     int n, sn;
     struct sockaddr cliaddr;
     socklen_t clilen = sizeof(cliaddr);
-    char send_buf[BUFFSIZE];
+    uint8_t send_buf[BUFFSIZE];
+    size_t send_len;
+    char cli_buf[64];
     char port_buf[8];
+    char id[32];
     if(ev.events & EPOLLIN) {
         n = recvfrom(sockfd, buf, len, 0, (struct sockaddr *)&cliaddr, &clilen);
         if (n > 0) {
             stun_header_t *binding = (stun_header_t *)buf;
             binding->msg_type = ntohs(binding->msg_type);
             binding->magic = ntohl(binding->magic);
-            binding->id_hi = be32toh(binding->id_hi);
-            binding->id_low = be64toh(binding->id_low);
-            Debug("msg_type: %s(0x%04X) magic: 0x%X id: 0x%lX",
+            stun_trans_id_to_string(binding->id, id, sizeof(id));
+            Debug("msg_type: %s(0x%04X) magic: 0x%X id: %s",
                   stun_msg_type_to_string(binding->msg_type),
                   binding->msg_type,
                   binding->magic,
-                  binding->id_low
+                  id
                 );
 
             switch (cliaddr.sa_family) {
             case AF_INET: {
                 struct sockaddr_in *sin = (struct sockaddr_in *)&cliaddr;
-                inet_ntop(cliaddr.sa_family, &sin->sin_addr, (char *)send_buf, sizeof(send_buf));
+                inet_ntop(cliaddr.sa_family, &sin->sin_addr, (char *)cli_buf, sizeof(cli_buf));
                 if (ntohs(sin->sin_port) != 0) {
                     snprintf(port_buf, sizeof(port_buf), ":%d", ntohs(sin->sin_port));
-                    strcat(send_buf, port_buf);
+                    strcat(cli_buf, port_buf);
                 }
                 break;
             }
             case AF_INET6: {
                 struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&cliaddr;
-                inet_ntop(cliaddr.sa_family, &sin6->sin6_addr, (char *)send_buf, sizeof(send_buf));
+                inet_ntop(cliaddr.sa_family, &sin6->sin6_addr, (char *)cli_buf, sizeof(cli_buf));
                 if (ntohs(sin6->sin6_port) != 0) {
                     snprintf(port_buf, sizeof(port_buf), ":%d", ntohs(sin6->sin6_port));
-                    strcat(send_buf, port_buf);
+                    strcat(cli_buf, port_buf);
                 }
                 break;
             }
             default:
                 break;
             }
-            sn = sendto(sockfd, send_buf, strlen((char *)send_buf), 0, (struct sockaddr *)&cliaddr, clilen);
-            Debug("send: %s", send_buf);
+            send_len = stun_get_binding_response(send_buf,sizeof(send_buf), binding->id, &cliaddr);
+            sn = sendto(sockfd, send_buf, send_len, 0, (struct sockaddr *)&cliaddr, clilen);
             return n;
         } else if (n == 0) {
             Info("disconnected");

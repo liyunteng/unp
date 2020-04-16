@@ -155,66 +155,222 @@ udp_server_sockfd(const char *host, const char *service, socklen_t *lenp)
 }
 
 const char *
-stun_msg_type_to_string(stun_msg_type type)
+stun_msg_type_to_string(uint16_t type)
 {
     switch(type) {
-    case STUN_BINDING_REQUEST:
+    case (STUN_BINDING | (STUN_CLASS_REQUEST << 4)):
         return "STUN_BINDING_REQUEST";
-    case STUN_SHARE_SECRET_REQUEST:
+    case (STUN_BINDING | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_BINDING_INDICATION";
+    case (STUN_BINDING | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_BINDING_RESPONSE";
+    case (STUN_BINDING | (STUN_CLASS_ERROR << 4)):
+        return "STUN_BINDING_ERROR";
+
+    case (STUN_SHARE_SECRET | (STUN_CLASS_REQUEST << 4)):
         return "STUN_SHARE_SECRET_REQUEST";
-    case STUN_ALLOCATE:
-        return "STUN_ALLOCATE";
-    case STUN_REFRESH:
-        return "STUN_REFRESH";
-    case STUN_CONNECT:
-        return "STUN_CONNECT";
-    case STUN_IND_SEND:
-        return "STUN_IND_SEND";
-    case STUN_IND_DATA:
-        return "STUN_IND_DATA";
-    case STUN_CREATPERMISSION:
-        return "STUN_CREATPERMISSION";
-    case STUN_CHANNELBIND:
-        return "STUN_CHANNELBIND";
+    case (STUN_SHARE_SECRET | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_SHARE_SECRET_INDICATION";
+    case (STUN_SHARE_SECRET | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_SHARE_SECRET_RESPONSE";
+    case (STUN_SHARE_SECRET | (STUN_CLASS_ERROR << 4)):
+        return "STUN_SHARE_SECRET_ERROR";
+
+    case (STUN_ALLOCATE | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_ALLOCATE_REQUEST";
+    case (STUN_ALLOCATE | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_ALLOCATE_INDICATION";
+    case (STUN_ALLOCATE | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_ALLOCATE_RESPONSE";
+    case (STUN_ALLOCATE | (STUN_CLASS_ERROR << 4)):
+        return "STUN_ALLOCATE_ERROR";
+
+    case (STUN_REFRESH | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_REFRESH_REQUEST";
+    case (STUN_REFRESH | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_REFRESH_INDICATION";
+    case (STUN_REFRESH | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_REFRESH_RESPONSE";
+    case (STUN_REFRESH | (STUN_CLASS_ERROR << 4)):
+        return "STUN_REFRESH_ERROR";
+
+    case (STUN_CONNECT | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_CONNECT_REQUEST";
+    case (STUN_CONNECT | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_CONNECT_INDICATION";
+    case (STUN_CONNECT | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_CONNECT_RESPONSE";
+    case (STUN_CONNECT | (STUN_CLASS_ERROR << 4)):
+        return "STUN_CONNECT_ERROR";
+
+    case (STUN_IND_SEND | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_IND_SEND_REQUEST";
+    case (STUN_IND_SEND | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_IND_SEND_INDICATION";
+    case (STUN_IND_SEND | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_IND_SEND_RESPONSE";
+    case (STUN_IND_SEND | (STUN_CLASS_ERROR << 4)):
+        return "STUN_IND_SEND_ERROR";
+
+    case (STUN_IND_DATA | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_IND_DATA_REQUEST";
+    case (STUN_IND_DATA | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_IND_DATA_INDICATION";
+    case (STUN_IND_DATA | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_IND_DATA_RESPONSE";
+    case (STUN_IND_DATA | (STUN_CLASS_ERROR << 4)):
+        return "STUN_IND_DATA_ERROR";
+
+    case (STUN_CREATPERMISSION | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_CREATPERMISSION_REQUEST";
+    case (STUN_CREATPERMISSION | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_CREATPERMISSION_INDICATION";
+    case (STUN_CREATPERMISSION | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_CREATPERMISSION_RESPONSE";
+    case (STUN_CREATPERMISSION | (STUN_CLASS_ERROR << 4)):
+        return "STUN_CREATPERMISSION_ERROR";
+
+    case (STUN_CHANNELBIND | (STUN_CLASS_REQUEST << 4)):
+        return "STUN_CHANNELBIND_REQUEST";
+    case (STUN_CHANNELBIND | (STUN_CLASS_INDICATION << 4)):
+        return "STUN_CHANNELBIND_INDICATION";
+    case (STUN_CHANNELBIND | (STUN_CLASS_RESPONSE << 4)):
+        return "STUN_CHANNELBIND_RESPONSE";
+    case (STUN_CHANNELBIND | (STUN_CLASS_ERROR << 4)):
+        return "STUN_CHANNELBIND_ERROR";
+
     default:
         return "UNKNOWN";
     }
 }
 
-int stun_get_binding_request(uint8_t *buf, size_t *len)
+void
+stun_make_trans_id(stun_trans_id id)
 {
-    if (!buf || !len) {
+    memset((void *)id, 0, sizeof(stun_trans_id));
+    long r = 0x1020304050607080;
+    /* srandom((unsigned)time(NULL)); */
+    /* long r = random(); */
+    memcpy((void *)id, &r, sizeof(r));
+}
+
+int stun_trans_id_to_string(stun_trans_id id, char *buf, size_t len)
+{
+    if (!buf || len < (3 + 2 * STUN_TRANS_ID_SIZE)) {
         return -1;
     }
-    unsigned long r;
-    stun_header_t binding;
-    memset(&binding, 0, sizeof(binding));
-    binding.msg_type = htons(STUN_BINDING_REQUEST);
-    binding.magic = htonl(STUN_MAGIC);
-    binding.msg_length = 0;
+    memset(buf, 0, len);
+    int n;
+    n = snprintf(buf, len, "0x");
+    for (int i = 0; i < STUN_TRANS_ID_SIZE; i++) {
+        n += snprintf(buf+n, len-n, "%02X", id[STUN_TRANS_ID_SIZE - i - 1]);
+    }
+    return 0;
+}
 
-    r = 0x0102030405060708;
-    binding.id_hi = 0;
-    binding.id_low = htobe64(r);
-    /* memcpy(binding.id, &r, sizeof(r)); */
+uint16_t stun_get_type(stun_class class,  stun_msg_type type)
+{
+    uint16_t r = 0;
+    r = ((class << 4) & 0xFF0) | (type & 0x000F);
+    return r;
+}
 
-    memcpy(buf, &binding, sizeof(binding));
-    *len = sizeof(binding);
-    return *len;
+int stun_get_binding_request(uint8_t *buf, size_t len, stun_trans_id id)
+{
+    if (!buf || len < STUN_HEADER_SIZE) {
+        return -1;
+    }
+
+    stun_header_t header;
+    memset(&header, 0, STUN_HEADER_SIZE);
+    header.msg_type = htons(stun_get_type(STUN_CLASS_REQUEST, STUN_BINDING));
+    header.magic = htonl(STUN_MAGIC);
+    header.msg_length = 0;
+    memcpy(header.id, id, STUN_TRANS_ID_SIZE);
+    memcpy(buf, &header, STUN_HEADER_SIZE);
+    return STUN_HEADER_SIZE;
+}
+
+int stun_get_binding_response(uint8_t *buf, size_t len, stun_trans_id id, struct sockaddr *addr)
+{
+    /* TODO:  */
+    if (!buf || len < (STUN_HEADER_SIZE + sizeof(stun_attr))) {
+        return -1;
+    }
+    stun_header_t header;
+    memset(&header, 0, STUN_HEADER_SIZE);
+    header.msg_type = htons(stun_get_type(STUN_CLASS_RESPONSE, STUN_BINDING));
+    header.magic = htonl(STUN_MAGIC);
+    memcpy(header.id, id, STUN_TRANS_ID_SIZE);
+    header.msg_length = 0;
+
+    union {
+        const struct sockaddr *addr;
+        const struct sockaddr_in *in;
+        const struct sockaddr_in6 *in6;
+    } sa;
+
+    uint8_t family;
+    uint16_t port, alen;
+    const void *pa;
+    uint8_t *ptr;
+    sa.addr = addr;
+    switch (addr->sa_family) {
+    case AF_INET: {
+        const struct sockaddr_in *ipv4 = sa.in;
+        family = AF_INET;
+        port = ipv4->sin_port;
+        alen = 4;
+        pa = &ipv4->sin_addr;
+        break;
+    }
+    case AF_INET6: {
+        const struct sockaddr_in6 *ipv6 = sa.in6;
+        family = AF_INET6;
+        port = ipv6->sin6_port;
+        alen = 16;
+        pa = &ipv6->sin6_addr;
+        break;
+    }
+    default:
+        Error("invalid address family");
+        return -1;
+    }
+
+    stun_attr_header_t attr_header;
+    attr_header.type = htons(STUN_ATTR_MAPPED_ADDRESS);
+    attr_header.length = htons(4 + alen);
+
+    ptr = buf + STUN_HEADER_SIZE + STUN_ATTR_HEADER_SIZE;
+    ptr[0] = 0;
+    ptr[1] = family;
+    memcpy(ptr + 2, &port, 2);
+    memcpy(ptr + 4, pa, alen);
+
+    header.msg_length = htons(STUN_ATTR_HEADER_SIZE + 4 + alen);
+    memcpy(buf, &header, STUN_HEADER_SIZE);
+    memcpy(buf + STUN_HEADER_SIZE, &attr_header, STUN_ATTR_HEADER_SIZE);
+
+    return STUN_ATTR_HEADER_SIZE + 4 + alen + STUN_HEADER_SIZE;
 }
 
 int stun_parse_request(uint8_t* buf,size_t len,char* ip,int* port)
 {
+    /* TODO: */
     if (!buf || len <= 0 || !ip || !port) {
         Error("invalid argument");
         return -1;
     }
 
     stun_header_t *header = (stun_header_t *)buf;
+    char id[64];
     header->msg_type = ntohs(header->msg_type);
+
     header->msg_length = ntohs(header->msg_length);
+    header->magic = ntohl(header->magic);
+    stun_trans_id_to_string(header->id,id,sizeof(id));
     switch (header->msg_type) {
-    case STUN_BINDING_REQUEST:
+    case (STUN_BINDING | (STUN_CLASS_RESPONSE << 4)):
     {
         if (header->msg_length > 0) {
             stun_attr_header_t *attr = (stun_attr_header_t *)(buf + sizeof(stun_header_t));
