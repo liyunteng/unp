@@ -16,7 +16,8 @@ udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
     int n, sn;
     struct sockaddr cliaddr;
     socklen_t clilen = sizeof(cliaddr);
-    uint8_t send_buf[BUFFSIZE];
+    char send_buf[BUFFSIZE];
+    char port_buf[8];
     if(ev.events & EPOLLIN) {
         n = recvfrom(sockfd, buf, len, 0, (struct sockaddr *)&cliaddr, &clilen);
         if (n > 0) {
@@ -25,7 +26,8 @@ udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
             binding->magic = ntohl(binding->magic);
             binding->id_hi = be32toh(binding->id_hi);
             binding->id_low = be64toh(binding->id_low);
-            Debug("msg_type: 0x%x magic: 0x%x id: 0x%lx",
+            Debug("msg_type: %s(0x%04X) magic: 0x%X id: 0x%lX",
+                  stun_msg_type_to_string(binding->msg_type),
                   binding->msg_type,
                   binding->magic,
                   binding->id_low
@@ -35,11 +37,19 @@ udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
             case AF_INET: {
                 struct sockaddr_in *sin = (struct sockaddr_in *)&cliaddr;
                 inet_ntop(cliaddr.sa_family, &sin->sin_addr, (char *)send_buf, sizeof(send_buf));
+                if (ntohs(sin->sin_port) != 0) {
+                    snprintf(port_buf, sizeof(port_buf), ":%d", ntohs(sin->sin_port));
+                    strcat(send_buf, port_buf);
+                }
                 break;
             }
             case AF_INET6: {
                 struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&cliaddr;
                 inet_ntop(cliaddr.sa_family, &sin6->sin6_addr, (char *)send_buf, sizeof(send_buf));
+                if (ntohs(sin6->sin6_port) != 0) {
+                    snprintf(port_buf, sizeof(port_buf), ":%d", ntohs(sin6->sin6_port));
+                    strcat(send_buf, port_buf);
+                }
                 break;
             }
             default:

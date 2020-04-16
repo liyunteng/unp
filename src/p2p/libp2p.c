@@ -18,6 +18,7 @@
 
 #include "libp2p.h"
 
+
 int
 udp_set_nonblock(int fd)
 {
@@ -153,6 +154,33 @@ udp_server_sockfd(const char *host, const char *service, socklen_t *lenp)
     return (sockfd);
 }
 
+const char *
+stun_msg_type_to_string(stun_msg_type type)
+{
+    switch(type) {
+    case STUN_BINDING_REQUEST:
+        return "STUN_BINDING_REQUEST";
+    case STUN_SHARE_SECRET_REQUEST:
+        return "STUN_SHARE_SECRET_REQUEST";
+    case STUN_ALLOCATE:
+        return "STUN_ALLOCATE";
+    case STUN_REFRESH:
+        return "STUN_REFRESH";
+    case STUN_CONNECT:
+        return "STUN_CONNECT";
+    case STUN_IND_SEND:
+        return "STUN_IND_SEND";
+    case STUN_IND_DATA:
+        return "STUN_IND_DATA";
+    case STUN_CREATPERMISSION:
+        return "STUN_CREATPERMISSION";
+    case STUN_CHANNELBIND:
+        return "STUN_CHANNELBIND";
+    default:
+        return "UNKNOWN";
+    }
+}
+
 int stun_get_binding_request(uint8_t *buf, size_t *len)
 {
     if (!buf || !len) {
@@ -161,7 +189,7 @@ int stun_get_binding_request(uint8_t *buf, size_t *len)
     unsigned long r;
     stun_header_t binding;
     memset(&binding, 0, sizeof(binding));
-    binding.msg_type = htons(STUN_MSG_TYPE_BINDING_REQUEST);
+    binding.msg_type = htons(STUN_BINDING_REQUEST);
     binding.magic = htonl(STUN_MAGIC);
     binding.msg_length = 0;
 
@@ -186,7 +214,7 @@ int stun_parse_request(uint8_t* buf,size_t len,char* ip,int* port)
     header->msg_type = ntohs(header->msg_type);
     header->msg_length = ntohs(header->msg_length);
     switch (header->msg_type) {
-    case STUN_MSG_TYPE_BINDING_REQUEST:
+    case STUN_BINDING_REQUEST:
     {
         if (header->msg_length > 0) {
             stun_attr_header_t *attr = (stun_attr_header_t *)(buf + sizeof(stun_header_t));
