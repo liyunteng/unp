@@ -40,8 +40,8 @@ udp_client_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
         n = recv(sockfd, buf, len, 0);
         if (n > 0) {
             /* dump_response(buf, n); */
+            /* stun_parse_response(buf,n); */
             stun_msg_dump(buf);
-            stun_parse_response(buf,n);
             return n;
         } else if (n == 0) {
             Info("disconnected");

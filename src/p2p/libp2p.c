@@ -1022,18 +1022,151 @@ stun_parse_response(uint8_t *ptr, size_t len)
 }
 
 void
+stun_msg_dump_addr(const uint8_t *ptr, const uint8_t *paddr, int xor)
+{
+    struct sockaddr_storage addr;
+    socklen_t addrlen;
+    char ip[64];
+
+    switch (paddr[1]) {
+    case 1:
+    {
+        struct sockaddr_in *ip4 = (struct sockaddr_in *)&addr;
+        addrlen = sizeof(struct sockaddr_in);
+        memset(ip4, 0, addrlen);
+        ip4->sin_family = AF_INET;
+#ifdef HAVE_SA_LEN
+        ip4->sin_len = addrlen;
+#endif
+        memcpy(&ip4->sin_port, paddr + 2, 2);
+        memcpy(&ip4->sin_addr, paddr + 4, 4);
+        if (xor) {
+            ip4->sin_port ^= htons (STUN_MAGIC >> 16);
+            ip4->sin_addr.s_addr ^= htonl (STUN_MAGIC);
+        }
+
+        inet_ntop(AF_INET, &ip4->sin_addr, ip, sizeof(ip));
+        Debug("ip: %s:%d", ip, htons(ip4->sin_port));
+        return;
+    }
+    case 2: {
+        struct sockaddr_in6 *ip6 = (struct sockaddr_in6 *)&addr;
+        addrlen = sizeof(struct sockaddr_in6);
+        memset(ip6, 0, addrlen);
+        ip6->sin6_family = AF_INET6;
+#ifdef HAVE_SA_LEN
+        ip6->sin6_len = addrlen;
+#endif
+        memcpy(&ip6->sin6_port, paddr + 2, 2);
+        memcpy(&ip6->sin6_addr, paddr + 4, 16);
+        if (xor) {
+            ip6->sin6_port ^= htons (STUN_MAGIC >> 16);
+            for (int i = 0; i < 16; i++)
+                ip6->sin6_addr.s6_addr[i] ^= ptr[STUN_MSG_MAGIC_POS + i];
+        }
+        inet_ntop(AF_INET6, &ip6->sin6_addr, ip, sizeof(ip));
+        Debug("ip: %s:%d", ip, htons(ip6->sin6_port));
+        return;
+    }
+    default:
+        Debug("Invalid Family");
+    }
+}
+void
 stun_msg_dump(const uint8_t *ptr)
 {
     size_t msg_len = stun_msg_length(ptr);
     size_t offset = 0;
 
+    stun_trans_id id;
+    char idstr[32];
+    Debug("type: %s", stun_msg_type_to_string((stun_msg_get_class(ptr) << 4 | stun_msg_get_type(ptr))));
+    Debug("length: %u", stun_msg_length(ptr));
+    Debug("magic: 0x%X", stun_msg_magic(ptr));
+    stun_msg_id(ptr,id);
+    stun_trans_id_to_string(id,idstr,sizeof(idstr));
+    Debug("id: %s", idstr);
+
     offset = STUN_ATTR_POS;
     while (offset < msg_len) {
         uint16_t atype = stun_getw(ptr + offset);
         size_t alen = stun_getw(ptr + offset + STUN_ATTR_LENGTH_POS);
+        switch (atype) {
+        case STUN_ATTR_MAPPED_ADDRESS:
+            Debug("MAPPED_ADDRESS: %lu", alen);
+            stun_msg_dump_addr(ptr, ptr+offset+STUN_ATTR_VALUE_POS, 0);
+            break;
+        case STUN_ATTR_RESPONSE_ADDRESS:
+            Debug("RESPONSE_ADDRESS: %lu", alen);
+            stun_msg_dump_addr(ptr, ptr+offset+STUN_ATTR_VALUE_POS, 0);
+            break;
+        case STUN_ATTR_CHANGE_REQUEST:
+            Debug("CHANGE_REQUEST: %lu", alen);
+            break;
+        case STUN_ATTR_SOURCE_ADDRESS:
+            Debug("SOURCE_ADDRESS: %lu", alen);
+            stun_msg_dump_addr(ptr, ptr+offset+STUN_ATTR_VALUE_POS, 0);
+            break;
+        case STUN_ATTR_CHANGED_ADDRESS:
+            Debug("CHANGED_ADDRESS: %lu", alen);
+            stun_msg_dump_addr(ptr, ptr+offset+STUN_ATTR_VALUE_POS, 0);
+            break;
+        case STUN_ATTR_USERNAME:
+            Debug("USERNAME: %lu", alen);
+            char username[128];
+            memcpy(username, ptr + offset + STUN_ATTR_VALUE_POS,  alen);
+            username[alen] = '\0';
+            Debug("username: %s", username);
+            break;
+        case STUN_ATTR_PASSWORD:
+            Debug("PASSWORD: %lu", alen);
+            char password[128];
+            memcpy(password, ptr + offset + STUN_ATTR_VALUE_POS,  alen);
+            password[alen] = '\0';
+            Debug("password: %s", password);
+            break;
+        case STUN_ATTR_MESSAGE_INTEGRITY:
+            Debug("MESSAGE_INTEGRITY: %lu", alen);
+            break;
+        case STUN_ATTR_ERROR_CODE:
+            Debug("ERROR_CODE: %lu", alen);
+            uint8_t class, number;
+            int code;
+            char err_msg[128];
+            class = ptr[offset + STUN_ATTR_VALUE_POS + 2] & 0x7;
+            number = ptr[offset + STUN_ATTR_VALUE_POS + 3];
+            code = (class * 100) + number;
+            memcpy(err_msg, ptr + offset + STUN_ATTR_VALUE_POS + 4, alen - 4);
+            err_msg[alen-4] = '\0';
+            Debug("erro code: %d reason: %s", code, err_msg);
+            break;
+        case STUN_ATTR_UNKNOWN_ATTRIBUTES:
+            Debug("UNKNOWN_ATTRIBUTES: %lu", alen);
+            uint16_t ua;
+            uint16_t ulen = 0;
+            while (ulen < alen) {
+                ua = stun_getw(ptr + offset + STUN_ATTR_VALUE_POS + ulen);
+                Debug("unknown attr: 0x%04X", ua);
+                ulen += 4;
+            }
+            break;
+        case STUN_ATTR_XOR_MAPPED_ADDRESS:
+            Debug("XOR_MAPPED_ADDRESS: %lu", alen);
+            stun_msg_dump_addr(ptr,ptr+offset+STUN_ATTR_VALUE_POS,1);
+            break;
+        case STUN_ATTR_SOFTWARE:
+            Debug("SOFTWARE: %lu", alen);
+            char software[128];
+            memcpy(software, ptr+offset+STUN_ATTR_VALUE_POS, alen);
+            software[alen] = '\0';
+            Debug("software: %s", software);
+            break;
+        default:
+            Debug("0x%04X: %lu", atype, alen);
+            break;
+        }
 
         offset += STUN_ATTR_VALUE_POS;
-        Debug("attr: 0x%03X %lu", atype, alen);
         offset += alen;
     }
 }
