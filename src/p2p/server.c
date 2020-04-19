@@ -9,37 +9,30 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <sys/epoll.h>
+
+#include "log.h"
+#include "udp.h"
 #include "libp2p.h"
 
 static int
 udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len)
 {
     int n, sn;
-    struct sockaddr cliaddr;
+    struct sockaddr_storage cliaddr;
     socklen_t clilen = sizeof(cliaddr);
     uint8_t send_buf[BUFFSIZE];
-    size_t send_len;
+    ssize_t send_len;
     char cli_buf[64];
     char port_buf[8];
     char id[32];
     if(ev.events & EPOLLIN) {
         n = recvfrom(sockfd, buf, len, 0, (struct sockaddr *)&cliaddr, &clilen);
         if (n > 0) {
-            stun_header_t *binding = (stun_header_t *)buf;
-            binding->msg_type = ntohs(binding->msg_type);
-            binding->magic = ntohl(binding->magic);
-            stun_trans_id_to_string(binding->id, id, sizeof(id));
-            Debug("msg_type: %s(0x%04X) magic: 0x%X id: %s",
-                  stun_msg_type_to_string(binding->msg_type),
-                  binding->msg_type,
-                  binding->magic,
-                  id
-                );
-
-            switch (cliaddr.sa_family) {
+            switch (cliaddr.ss_family) {
             case AF_INET: {
                 struct sockaddr_in *sin = (struct sockaddr_in *)&cliaddr;
-                inet_ntop(cliaddr.sa_family, &sin->sin_addr, (char *)cli_buf, sizeof(cli_buf));
+                inet_ntop(AF_INET, &sin->sin_addr, (char *)cli_buf, sizeof(cli_buf));
                 if (ntohs(sin->sin_port) != 0) {
                     snprintf(port_buf, sizeof(port_buf), ":%d", ntohs(sin->sin_port));
                     strcat(cli_buf, port_buf);
@@ -48,7 +41,9 @@ udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
             }
             case AF_INET6: {
                 struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&cliaddr;
-                inet_ntop(cliaddr.sa_family, &sin6->sin6_addr, (char *)cli_buf, sizeof(cli_buf));
+                if (inet_ntop(AF_INET6, &sin6->sin6_addr, (char *)cli_buf, sizeof(cli_buf)) == NULL) {
+                    Error("ntop failed");
+                }
                 if (ntohs(sin6->sin6_port) != 0) {
                     snprintf(port_buf, sizeof(port_buf), ":%d", ntohs(sin6->sin6_port));
                     strcat(cli_buf, port_buf);
@@ -58,7 +53,22 @@ udp_server_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
             default:
                 break;
             }
-            send_len = stun_get_binding_response(send_buf,sizeof(send_buf), binding->id, &cliaddr);
+            stun_header_t *binding = (stun_header_t *)buf;
+            binding->msg_type = ntohs(binding->msg_type);
+            binding->magic = ntohl(binding->magic);
+            stun_trans_id_to_string(binding->id, id, sizeof(id));
+            Debug("%s msg_type: %s(0x%04X) magic: 0x%X id: %s",
+                  cli_buf,
+                  stun_msg_type_to_string(binding->msg_type),
+                  binding->msg_type,
+                  binding->magic,
+                  id);
+
+
+            send_len = stun_get_binding_response(send_buf,sizeof(send_buf), binding->id, (struct sockaddr *)&cliaddr, clilen);
+            if (send_len < 0) {
+                Error("get binding response failed: %ld", send_len);
+            }
             sn = sendto(sockfd, send_buf, send_len, 0, (struct sockaddr *)&cliaddr, clilen);
             return n;
         } else if (n == 0) {
@@ -148,5 +158,5 @@ int main(int argc, char *argv[])
 }
 
 /* Local Variables: */
-/* compile-command: "clang -Wall -o server server.c -g libp2p.c" */
+/* compile-command: "clang -Wall -o server server.c -g libp2p.c udp.c" */
 /* End: */

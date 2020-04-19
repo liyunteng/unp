@@ -8,7 +8,10 @@
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
+#include <sys/epoll.h>
 
+#include "log.h"
+#include "udp.h"
 #include "libp2p.h"
 
 static int
@@ -20,6 +23,15 @@ udp_client_send_data(int sockfd, uint8_t *buf, size_t len)
     return n;
 }
 
+static void
+dump_response(uint8_t *buf, size_t len)
+{
+    for (size_t i = 0; i < len; i++) {
+        printf("0x%02X ", buf[i]);
+    }
+    printf("\n");
+}
+
 static int
 udp_client_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len)
 {
@@ -27,10 +39,9 @@ udp_client_recv_data(int sockfd, struct epoll_event ev, uint8_t *buf, size_t len
     if(ev.events & EPOLLIN) {
         n = recv(sockfd, buf, len, 0);
         if (n > 0) {
-            char ip[64];
-            int port = 0;
-            stun_parse_request(buf,n, ip, &port);
-            Info("ip: %s:%d, recv: %d", ip, port, n);
+            /* dump_response(buf, n); */
+            stun_msg_dump(buf);
+            stun_parse_response(buf,n);
             return n;
         } else if (n == 0) {
             Info("disconnected");
@@ -58,7 +69,7 @@ client(const char *host, const char *service)
 {
     int sockfd, rc;
     socklen_t salen;
-    struct sockaddr *sa;
+    struct sockaddr_storage *sa;
     int epfd, nfds;
     struct epoll_event ev, events[MAXEVENTS];
     int timeout = 3 * 1000;
@@ -72,7 +83,7 @@ client(const char *host, const char *service)
         return -1;
     }
 
-    if (connect(sockfd, sa, salen) < 0) {
+    if (connect(sockfd, (struct sockaddr *)sa, salen) < 0) {
         Error("connect failed: %s", strerror(errno));
         return -1;
     }
@@ -94,6 +105,11 @@ client(const char *host, const char *service)
     stun_trans_id id;
     stun_make_trans_id(id);
     send_len = stun_get_binding_request(send_buf, buflen, id);
+    if (send_len < 0) {
+        Error("get binding request failed\n");
+        return -1;
+    }
+    dump_response(send_buf,send_len);
     udp_client_send_data(sockfd, send_buf, send_len);
     for (;;) {
         nfds = epoll_wait(epfd, events, MAXEVENTS, timeout);
@@ -132,5 +148,5 @@ int main(int argc, char *argv[])
 }
 
 /* Local Variables: */
-/* compile-command: "clang -Wall -o client client.c -g libp2p.c" */
+/* compile-command: "clang -Wall -o client client.c -g libp2p.c udp.c" */
 /* End: */

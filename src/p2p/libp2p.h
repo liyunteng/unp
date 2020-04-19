@@ -5,42 +5,37 @@
  */
 #ifndef LIBP2P_H
 #define LIBP2P_H
-
-#include <stdint.h>
 #include <stdio.h>
-#include <sys/epoll.h>
+#include <stdint.h>
 #include <sys/socket.h>
-
-#define MAXEVENTS 10
-#define BUFFSIZE 4096
-
-#define Debug(format, ...)                                                     \
-    printf("%s:%d [DEBUG] " format "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define Info(format, ...)                                                      \
-    printf("%s:%d [INFO ] " format "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define Warn(format, ...)                                                      \
-    printf("%s:%d [WARN ] " format "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define Error(format, ...)                                                     \
-    printf("%s:%d [ERROR] " format "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
-
-int udp_set_nonblock(int fd);
-int udp_client_sockfd(const char *host, const char *service,
-                      struct sockaddr **saptr, socklen_t *lenp);
-int udp_server_sockfd(const char *host, const char *service, socklen_t *lenp);
 
 /* stun_header_t magic*/
 #define STUN_MAGIC 0x2112A422
 
-#define STUN_ATTR_HEADER_SIZE 4
-#define STUN_HEADER_SIZE 20
-#define STUN_TRANS_ID_SIZE 12
+#define STUN_MSG_TYPE_POS 0
+#define STUN_MSG_TYPE_SIZE 2
+#define STUN_MSG_LENGTH_POS (STUN_MSG_TYPE_POS + STUN_MSG_TYPE_SIZE)
+#define STUN_MSG_LENGTH_SIZE 2
+#define STUN_MSG_MAGIC_POS (STUN_MSG_LENGTH_POS + STUN_MSG_LENGTH_SIZE)
+#define STUN_MSG_MAGIC_SIZE 4
+#define STUN_MSG_TRANS_ID_POS (STUN_MSG_MAGIC_POS + STUN_MSG_MAGIC_SIZE)
+#define STUN_MSG_TRANS_ID_SIZE 12
+#define STUN_ATTR_POS (STUN_MSG_TRANS_ID_POS + STUN_MSG_TRANS_ID_SIZE)
+#define STUN_MSG_HEADER_SIZE STUN_ATTR_POS
+#define STUN_ATTR_TYPE_POS 0
+#define STUN_ATTR_TYPE_SIZE 2
+#define STUN_ATTR_LENGTH_POS (STUN_ATTR_TYPE_POS + STUN_ATTR_TYPE_SIZE)
+#define STUN_ATTR_LENGTH_SIZE 2
+#define STUN_ATTR_VALUE_POS (STUN_ATTR_LENGTH_POS + STUN_ATTR_LENGTH_SIZE)
+#define STUN_ATTR_HEADER_SIZE STUN_ATTR_VALUE_POS
+
 
 typedef enum {
     STUN_CLASS_REQUEST    = 0x00,
     STUN_CLASS_INDICATION = 0x01,
     STUN_CLASS_RESPONSE   = 0x10,
     STUN_CLASS_ERROR      = 0x11,
-} stun_class;
+} stun_msg_class;
 
 /* stun_header_t msg_type */
 typedef enum {
@@ -124,41 +119,62 @@ typedef enum {
 } stun_attr_type;
 
 
+typedef enum {
+    STUN_ERROR_TRY_ALTERNATE = 300, /* RFC5389 */
+    STUN_ERROR_BAD_REQUEST = 400,   /* RFC5389 */
+    STUN_ERROR_UNAUTHORIZED = 401,  /* RFC5389 */
+    STUN_ERROR_UNKNOWN_ATTR = 420,  /* RFC5389 */
+    STUN_ERROR_ALLOCATION_MISMATCH = 437, /* TURN-12 */
+    STUN_ERROR_STALE_NONCE = 438,         /* RFC5389 */
+    STUN_ERROR_ACT_DST_ALREADY = 439,     /* TURN-04 */
+    STUN_ERROR_UNSUPPORTED_FAMILY = 440,         /* TURN-IPv6-05 */
+    STUN_ERROR_WRONG_CREDENTIALS = 441,           /* TURN-12 */
+    STUN_ERROR_UNSUPPORTED_TRANSPORT = 442,       /* TURN-12 */
+    STUN_ERROR_INVALID_IP = 443,                 /* TURN-04 */
+    STUN_ERROR_INVALID_PORT = 444,               /* TURN-04 */
+    STUN_ERROR_OP_TCP_ONLY = 445,                /* TURN-04 */
+    STUN_ERROR_CONN_ALREADY = 446,               /* TURN-04 */
+    STUN_ERROR_ALLOCATION_QUOTA_REACHED = 486,   /* TURN-12 */
+    STUN_ERROR_ROLE_CONFLICT = 487,              /* ICE-19 */
+    STUN_ERROR_SERVER_ERROR = 500,               /* RFC5389 */
+    STUN_ERROR_SERVER_CAPACITY = 507,            /* TURN-04 */
+    STUN_ERROR_INSUFFICIENT_CAPACITY = 508,      /* TURN-12 */
+    STUN_ERROR_MAX = 699
+} stun_error;
+
+typedef enum {
+    STUN_RETURN_SUCCESS,
+    STUN_RETURN_NOT_FOUND,
+    STUN_RETURN_INVALID,
+    STUN_RETURN_NOT_ENOUGH_SPACE,
+    STUN_RETURN_UNSUPPORTED_ADDRESS
+} stun_return;
+
 typedef struct {
     uint16_t type;
     uint16_t length;
 } stun_attr_header_t;
 
-typedef struct {
-    stun_attr_header_t header;
-    uint8_t buf[0];
-} stun_attr;
-
-typedef struct {
-    uint8_t reseved;
-    uint8_t family;
-    uint16_t port;
-    uint32_t address;
-} mapped_address_t;
-
-typedef uint8_t stun_trans_id[STUN_TRANS_ID_SIZE];
+typedef uint8_t stun_trans_id[STUN_MSG_TRANS_ID_SIZE];
 typedef struct {
     uint16_t msg_type;
     uint16_t msg_length;
-    uint32_t magic; /* always be 0x2112A442 */
+    uint32_t magic; /* always be 0x2112A422 */
     stun_trans_id id;
 } stun_header_t;
 
-typedef struct {
-    stun_header_t header;
-    stun_attr_header_t attr[0];
-} stun_msg;
-
-int stun_get_binding_request(uint8_t *buf, size_t len, stun_trans_id id);
-int stun_get_binding_response(uint8_t *buf, size_t len, stun_trans_id id, struct sockaddr *addr);
-int stun_parse_request(uint8_t *buf, size_t len, char *ip, int *port);
-uint16_t stun_get_type(stun_class class,  stun_msg_type type);
+const char *stun_strerror(stun_error code);
+void *stun_setw(uint8_t *ptr, uint16_t val);
+uint16_t stun_getw(const uint8_t *ptr);
 const char * stun_msg_type_to_string(uint16_t type);
+
 void stun_make_trans_id(stun_trans_id id);
 int stun_trans_id_to_string(stun_trans_id id, char *buf, size_t len);
+
+ssize_t stun_get_binding_request(uint8_t *buf, size_t len, stun_trans_id id);
+ssize_t stun_get_binding_response(uint8_t *buf, size_t len, stun_trans_id id, struct sockaddr *addr, socklen_t addrlen);
+
+int stun_parse_response(uint8_t *buf, size_t len);
+void stun_msg_dump(const uint8_t *ptr);
+
 #endif
